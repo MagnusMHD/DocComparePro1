@@ -6,102 +6,64 @@ using Microsoft.Win32;
 
 namespace DocComparePro.ViewModels;
 
+/// <summary>
+/// Coordinates file selection, comparison, result display and report export.
+/// </summary>
 public partial class MainViewModel : ObservableObject
 {
     private readonly IDocumentReader documentReader;
     private readonly IComparisonEngine comparisonEngine;
+    private readonly IReportExporter reportExporter;
+    private readonly IFileLogger logger;
+    private ComparisonResult? currentResult;
 
-    [ObservableProperty]
-    private string leftFilePath = string.Empty;
+    [ObservableProperty] private string leftFilePath = string.Empty;
+    [ObservableProperty] private string rightFilePath = string.Empty;
+    [ObservableProperty] private string leftFileName = "Keine Datei ausgewählt";
+    [ObservableProperty] private string rightFileName = "Keine Datei ausgewählt";
+    [ObservableProperty] private string leftPreview = string.Empty;
+    [ObservableProperty] private string rightPreview = string.Empty;
+    [ObservableProperty] private bool caseSensitive;
+    [ObservableProperty] private bool compareNumbers = true;
+    [ObservableProperty] private bool comparePunctuation = true;
+    [ObservableProperty] private bool ignoreWhitespace = true;
+    [ObservableProperty] private bool enableOcr = true;
+    [ObservableProperty] private bool useSentenceMode;
+    [ObservableProperty] private bool isBusy;
+    [ObservableProperty] private double similarityPercentage;
+    [ObservableProperty] private int differenceCount;
+    [ObservableProperty] private int comparedUnitCount;
+    [ObservableProperty] private string processingTime = "0 ms";
+    [ObservableProperty] private string statusMessage = "Bereit";
 
-    [ObservableProperty]
-    private string rightFilePath = string.Empty;
-
-    [ObservableProperty]
-    private string leftFileName = "Keine Datei ausgewählt";
-
-    [ObservableProperty]
-    private string rightFileName = "Keine Datei ausgewählt";
-
-    [ObservableProperty]
-    private string leftPreview = string.Empty;
-
-    [ObservableProperty]
-    private string rightPreview = string.Empty;
-
-    [ObservableProperty]
-    private bool caseSensitive;
-
-    [ObservableProperty]
-    private bool compareNumbers = true;
-
-    [ObservableProperty]
-    private bool comparePunctuation = true;
-
-    [ObservableProperty]
-    private bool ignoreWhitespace = true;
-
-    [ObservableProperty]
-    private bool enableOcr = true;
-
-    [ObservableProperty]
-    private bool useSentenceMode;
-
-    [ObservableProperty]
-    private bool isBusy;
-
-    [ObservableProperty]
-    private double similarityPercentage;
-
-    [ObservableProperty]
-    private int differenceCount;
-
-    [ObservableProperty]
-    private int comparedUnitCount;
-
-    [ObservableProperty]
-    private string processingTime = "0 ms";
-
-    [ObservableProperty]
-    private string statusMessage = "Bereit";
-
+    /// <summary>Contains only added, removed and changed units for display.</summary>
     public ObservableCollection<DifferenceItem> Differences { get; } = new();
 
-    public MainViewModel(IDocumentReader documentReader, IComparisonEngine comparisonEngine)
+    /// <summary>
+    /// Creates the main view model with all required application services.
+    /// </summary>
+    public MainViewModel(
+        IDocumentReader documentReader,
+        IComparisonEngine comparisonEngine,
+        IReportExporter reportExporter,
+        IFileLogger logger)
     {
         this.documentReader = documentReader;
         this.comparisonEngine = comparisonEngine;
+        this.reportExporter = reportExporter;
+        this.logger = logger;
     }
 
     [RelayCommand]
-    private void SelectLeftFile()
-    {
-        var path = ShowFileDialog();
-        if (path is null)
-        {
-            return;
-        }
-
-        LeftFilePath = path;
-        LeftFileName = Path.GetFileName(path);
-        ResetResult();
-        CompareCommand.NotifyCanExecuteChanged();
-    }
+    private void SelectLeftFile() => SetFile(isLeft: true, ShowFileDialog());
 
     [RelayCommand]
-    private void SelectRightFile()
-    {
-        var path = ShowFileDialog();
-        if (path is null)
-        {
-            return;
-        }
+    private void SelectRightFile() => SetFile(isLeft: false, ShowFileDialog());
 
-        RightFilePath = path;
-        RightFileName = Path.GetFileName(path);
-        ResetResult();
-        CompareCommand.NotifyCanExecuteChanged();
-    }
+    /// <summary>
+    /// Accepts a path from the view's drag-and-drop event.
+    /// </summary>
+    public void SetDroppedFile(bool isLeft, string? filePath) => SetFile(isLeft, filePath);
 
     [RelayCommand(CanExecute = nameof(CanCompare))]
     private async Task CompareAsync()
@@ -116,20 +78,57 @@ public partial class MainViewModel : ObservableObject
             var rightTask = documentReader.ReadAsync(RightFilePath, options.EnableOcr);
             await Task.WhenAll(leftTask, rightTask);
 
-            var result = await Task.Run(() =>
+            currentResult = await Task.Run(() =>
                 comparisonEngine.Compare(leftTask.Result.Text, rightTask.Result.Text, options));
 
-            ApplyResult(result);
+            ApplyResult(currentResult);
             StatusMessage = "Vergleich erfolgreich abgeschlossen.";
         }
         catch (Exception exception)
         {
             ResetResult();
+            await logger.LogErrorAsync("Dokumentvergleich fehlgeschlagen.", exception);
             StatusMessage = $"Fehler: {exception.Message}";
         }
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private async Task ExportAsync()
+    {
+        if (currentResult is null)
+        {
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Vergleichsbericht speichern",
+            FileName = $"DocCompare_{DateTime.Now:yyyyMMdd_HHmmss}",
+            Filter = "HTML-Bericht|*.html|CSV-Datei|*.csv"
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            await reportExporter.ExportAsync(
+                dialog.FileName,
+                LeftFileName,
+                RightFileName,
+                currentResult);
+            StatusMessage = $"Bericht gespeichert: {dialog.FileName}";
+        }
+        catch (Exception exception)
+        {
+            await logger.LogErrorAsync("Berichtsexport fehlgeschlagen.", exception);
+            StatusMessage = $"Exportfehler: {exception.Message}";
         }
     }
 
@@ -142,13 +141,43 @@ public partial class MainViewModel : ObservableObject
         RightFileName = "Keine Datei ausgewählt";
         ResetResult();
         StatusMessage = "Bereit";
-        CompareCommand.NotifyCanExecuteChanged();
+        NotifyCommandStates();
+    }
+
+    private void SetFile(bool isLeft, string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        if (isLeft)
+        {
+            LeftFilePath = path;
+            LeftFileName = Path.GetFileName(path);
+        }
+        else
+        {
+            RightFilePath = path;
+            RightFileName = Path.GetFileName(path);
+        }
+
+        ResetResult();
+        NotifyCommandStates();
     }
 
     private bool CanCompare() =>
         !IsBusy && File.Exists(LeftFilePath) && File.Exists(RightFilePath);
 
-    partial void OnIsBusyChanged(bool value) => CompareCommand.NotifyCanExecuteChanged();
+    private bool CanExport() => !IsBusy && currentResult is not null;
+
+    partial void OnIsBusyChanged(bool value) => NotifyCommandStates();
+
+    private void NotifyCommandStates()
+    {
+        CompareCommand.NotifyCanExecuteChanged();
+        ExportCommand.NotifyCanExecuteChanged();
+    }
 
     private ComparisonOptions CreateOptions() => new(
         UseSentenceMode ? ComparisonMode.Sentences : ComparisonMode.Words,
@@ -172,10 +201,12 @@ public partial class MainViewModel : ObservableObject
         DifferenceCount = result.DifferenceCount;
         ComparedUnitCount = result.ComparedUnitCount;
         ProcessingTime = $"{result.ProcessingTime.TotalMilliseconds:N0} ms";
+        NotifyCommandStates();
     }
 
     private void ResetResult()
     {
+        currentResult = null;
         Differences.Clear();
         LeftPreview = string.Empty;
         RightPreview = string.Empty;
@@ -183,6 +214,7 @@ public partial class MainViewModel : ObservableObject
         DifferenceCount = 0;
         ComparedUnitCount = 0;
         ProcessingTime = "0 ms";
+        ExportCommand.NotifyCanExecuteChanged();
     }
 
     private static string? ShowFileDialog()
@@ -190,7 +222,7 @@ public partial class MainViewModel : ObservableObject
         var dialog = new OpenFileDialog
         {
             Title = "Dokument auswählen",
-            Filter = "Unterstützte Dateien|*.txt;*.pdf;*.png;*.jpg;*.jpeg|Textdateien|*.txt|PDF-Dokumente|*.pdf|Bilder|*.png;*.jpg;*.jpeg",
+            Filter = "Unterstützte Dateien|*.txt;*.pdf;*.docx;*.png;*.jpg;*.jpeg|Textdateien|*.txt|PDF-Dokumente|*.pdf|Word-Dokumente|*.docx|Bilder|*.png;*.jpg;*.jpeg",
             CheckFileExists = true,
             Multiselect = false
         };
