@@ -1,83 +1,45 @@
-﻿<ResourceDictionary
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Main Background -->
-
+    <!-- Original application palette. -->
     <Color x:Key="BackgroundColor">#0A0A0A</Color>
-    <SolidColorBrush x:Key="BackgroundBrush"
-                     Color="{StaticResource BackgroundColor}" />
-
-    <!-- Panels -->
-
     <Color x:Key="PanelColor">#181818</Color>
-    <SolidColorBrush x:Key="PanelBrush"
-                     Color="{StaticResource PanelColor}" />
-
-    <!-- RichText -->
-
-    <Color x:Key="EditorColor">#151515</Color>
-    <SolidColorBrush x:Key="EditorBrush"
-                     Color="{StaticResource EditorColor}" />
-
-    <!-- Glass -->
-
-    <Color x:Key="GlassColor">#22FFFFFF</Color>
-    <SolidColorBrush x:Key="GlassBrush"
-                     Color="{StaticResource GlassColor}" />
-
-    <!-- Neon Green -->
-
+    <Color x:Key="EditorColor">#101216</Color>
+    <Color x:Key="GlassColor">#24FFFFFF</Color>
+    <Color x:Key="GlassHoverColor">#32FFFFFF</Color>
     <Color x:Key="NeonGreenColor">#00FFAA</Color>
-    <SolidColorBrush x:Key="NeonGreenBrush"
-                     Color="{StaticResource NeonGreenColor}" />
-
-    <!-- Neon Orange -->
-
     <Color x:Key="NeonOrangeColor">#FF8800</Color>
-    <SolidColorBrush x:Key="NeonOrangeBrush"
-                     Color="{StaticResource NeonOrangeColor}" />
-
-    <!-- Neon Blue -->
-
     <Color x:Key="NeonBlueColor">#00D9FF</Color>
-    <SolidColorBrush x:Key="NeonBlueBrush"
-                     Color="{StaticResource NeonBlueColor}" />
-
-    <!-- Text -->
-
     <Color x:Key="TextColor">#FFFFFF</Color>
-    <SolidColorBrush x:Key="TextBrush"
-                     Color="{StaticResource TextColor}" />
-
-    <!-- Secondary Text -->
-
-    <Color x:Key="SecondaryTextColor">#B0B0B0</Color>
-    <SolidColorBrush x:Key="SecondaryTextBrush"
-                     Color="{StaticResource SecondaryTextColor}" />
-
-    <!-- Borders -->
-
-    <Color x:Key="BorderColor">#40FFFFFF</Color>
-    <SolidColorBrush x:Key="BorderBrush"
-                     Color="{StaticResource BorderColor}" />
-
-    <!-- Success -->
-
+    <Color x:Key="SecondaryTextColor">#C2C6CC</Color>
+    <Color x:Key="BorderColor">#55FFFFFF</Color>
     <Color x:Key="SuccessColor">#00E676</Color>
-    <SolidColorBrush x:Key="SuccessBrush"
-                     Color="{StaticResource SuccessColor}" />
-
-    <!-- Warning -->
-
     <Color x:Key="WarningColor">#FFC107</Color>
-    <SolidColorBrush x:Key="WarningBrush"
-                     Color="{StaticResource WarningColor}" />
+    <Color x:Key="ErrorColor">#FF5A67</Color>
 
-    <!-- Error -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}" />
+    <SolidColorBrush x:Key="EditorBrush" Color="{StaticResource EditorColor}" />
+    <SolidColorBrush x:Key="GlassBrush" Color="{StaticResource GlassColor}" />
+    <SolidColorBrush x:Key="GlassHoverBrush" Color="{StaticResource GlassHoverColor}" />
+    <SolidColorBrush x:Key="NeonGreenBrush" Color="{StaticResource NeonGreenColor}" />
+    <SolidColorBrush x:Key="NeonOrangeBrush" Color="{StaticResource NeonOrangeColor}" />
+    <SolidColorBrush x:Key="NeonBlueBrush" Color="{StaticResource NeonBlueColor}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="{StaticResource SecondaryTextColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
 
-    <Color x:Key="ErrorColor">#F44336</Color>
-    <SolidColorBrush x:Key="ErrorBrush"
-                     Color="{StaticResource ErrorColor}" />
-
+    <!-- Contrast-safe supporting brushes. -->
+    <SolidColorBrush x:Key="DarkTextBrush" Color="#07110D" />
+    <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#E614171C" />
+    <SolidColorBrush x:Key="ControlHoverBrush" Color="#F0252930" />
+    <SolidColorBrush x:Key="ControlPressedBrush" Color="#F031363E" />
+    <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#553A3E45" />
+    <SolidColorBrush x:Key="DisabledTextBrush" Color="#FF8B9098" />
+    <SolidColorBrush x:Key="DataGridAlternatingBrush" Color="#C91B1E24" />
+    <SolidColorBrush x:Key="SelectionBrush" Color="#6600D9FF" />
 </ResourceDictionary>

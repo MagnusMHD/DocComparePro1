@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml" />
+    <Page Include="Resources/Colors.xaml" />
+    <Page Include="Resources/Styles.xaml" />
     <Page Include="Views/MainWindow.xaml" />
 
     <Compile Include="App.xaml.cs" />
