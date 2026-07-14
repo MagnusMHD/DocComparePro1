@@ -1,349 +1,176 @@
-﻿<Window x:Class="DocComparePro.Views.MainWindow"
+<Window x:Class="DocComparePro.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="DocComparePro"
-        Width="1600"
+        Width="1400"
         Height="900"
-        MinWidth="1400"
-        MinHeight="800"
+        MinWidth="1100"
+        MinHeight="720"
         WindowStartupLocation="CenterScreen"
-        WindowStyle="None"
-        ResizeMode="CanResize"
-        AllowsTransparency="False"
-
         Background="{StaticResource BackgroundBrush}">
-
-    <DockPanel>
-
-        <!-- TOP BAR -->
-
-        <Border DockPanel.Dock="Top"
-        Height="50"
-        Background="#111111"
-        MouseDown="TitleBar_MouseDown">
-
-            <Grid>
-
-                <Grid.ColumnDefinitions>
-
-                    <ColumnDefinition/>
-                    <ColumnDefinition Width="Auto"/>
-
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Orientation="Horizontal">
-
-                    <TextBlock Text="📄"
-                       FontSize="20"
-                       Margin="15,0,10,0"
-                       VerticalAlignment="Center"/>
-
-                    <TextBlock Text="DocComparePro"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"/>
-
-                </StackPanel>
-
-                <StackPanel Grid.Column="1"
-                    Orientation="Horizontal">
-
-                    <Button x:Name="BtnMinimize"
-                    Content="—"
-                    Click="BtnMinimize_Click"
-                    Width="45"
-                    Height="45"/>
-
-                    <Button x:Name="BtnMaximize"
-                    Content="□"
-                    Click="BtnMaximize_Click"
-                    Width="45"
-                    Height="45"/>
-
-                    <Button x:Name="BtnClose"
-                    Content="✕"
-                    Click="BtnClose_Click"
-                    Width="45"
-                    Height="45"
-                    Foreground="Red"/>
-
-                </StackPanel>
-
-            </Grid>
-
-        </Border>
-        <!-- MAIN -->
-
-        <Grid Margin="15">
-
-            <Grid.RowDefinitions>
-
-                <RowDefinition Height="250"/>
-                <RowDefinition Height="170"/>
-                <RowDefinition Height="120"/>
-                <RowDefinition Height="*"/>
-
-            </Grid.RowDefinitions>
-
-            <!-- UPLOAD -->
-
-            <Grid Grid.Row="0">
-
-                <Grid.ColumnDefinitions>
-
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-
-                </Grid.ColumnDefinitions>
-
-                <!-- DOCUMENT A -->
-
-                <Border Grid.Column="0"
-                        Style="{StaticResource GlassCardStyle}">
-
-                    <StackPanel>
-
-                        <TextBlock Text="Dokument A"
-                                   FontSize="22"
-                                   FontWeight="Bold"/>
-
-                        <Border Height="140"
-                                Margin="0,15,0,0"
-                                BorderThickness="2"
-                                BorderBrush="{StaticResource NeonGreenBrush}"
-                                CornerRadius="15">
-
-                            <Grid>
-
-                                <TextBlock Text="Datei hier hineinziehen"
-                                           FontSize="20"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-
-                            </Grid>
-
-                        </Border>
-
-                    </StackPanel>
-
-                </Border>
-
-                <!-- DOCUMENT B -->
-
-                <Border Grid.Column="1"
-                        Style="{StaticResource GlassCardStyle}">
-
-                    <StackPanel>
-
-                        <TextBlock Text="Dokument B"
-                                   FontSize="22"
-                                   FontWeight="Bold"/>
-
-                        <Border Height="140"
-                                Margin="0,15,0,0"
-                                BorderThickness="2"
-                                BorderBrush="{StaticResource NeonOrangeBrush}"
-                                CornerRadius="15">
-
-                            <Grid>
-
-                                <TextBlock Text="Datei hier hineinziehen"
-                                           FontSize="20"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-
-                            </Grid>
-
-                        </Border>
-
-                    </StackPanel>
-
-                </Border>
-
-            </Grid>
-
-            <!-- OPTIONS -->
-
-            <Border Grid.Row="1"
-                    Style="{StaticResource GlassCardStyle}">
-
-                <Grid>
-
-                    <Grid.ColumnDefinitions>
-
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="*" />
-
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel>
-
-                        <TextBlock Text="Vergleichsoptionen"
-                                   FontSize="20"
-                                   FontWeight="Bold"/>
-
-                        <WrapPanel Margin="0,10,0,0">
-
-                            <CheckBox Content="Groß-/Kleinschreibung beachten"
-                                      Margin="10"/>
-
-                            <CheckBox Content="Zahlen exakt vergleichen"
-                                      Margin="10"/>
-
-                            <CheckBox Content="Satzzeichen vergleichen"
-                                      Margin="10"/>
-
-                            <CheckBox Content="Leerzeichen ignorieren"
-                                      Margin="10"/>
-
-                            <CheckBox Content="OCR aktivieren"
-                                      Margin="10"/>
-
-                        </WrapPanel>
-
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="1">
-
-                        <TextBlock Text="Modus"
-                                   FontSize="20"
-                                   FontWeight="Bold"/>
-
-                        <RadioButton Content="Wort zu Wort"
-                                     Margin="0,10,0,5"
-                                     IsChecked="True"/>
-
-                        <RadioButton Content="Satz zu Satz"/>
-
-                    </StackPanel>
-
-                </Grid>
-
-            </Border>
-
-            <!-- STATISTICS -->
-
-            <Grid Grid.Row="2">
-
-                <Grid.ColumnDefinitions>
-
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="0"
-                        Style="{StaticResource GlassCardStyle}">
-
-                    <StackPanel>
-
-                        <TextBlock Text="Übereinstimmung"/>
-                        <TextBlock Text="0 %"
-                                   FontSize="32"
-                                   FontWeight="Bold"/>
-
-                    </StackPanel>
-
-                </Border>
-
-                <Border Grid.Column="1"
-                        Style="{StaticResource GlassCardStyle}">
-
-                    <StackPanel>
-
-                        <TextBlock Text="Unterschiede"/>
-                        <TextBlock Text="0"
-                                   FontSize="32"
-                                   FontWeight="Bold"/>
-
-                    </StackPanel>
-
-                </Border>
-
-                <Border Grid.Column="2"
-                        Style="{StaticResource GlassCardStyle}">
-
-                    <StackPanel>
-
-                        <TextBlock Text="Geprüfte Wörter"/>
-                        <TextBlock Text="0"
-                                   FontSize="32"
-                                   FontWeight="Bold"/>
-
-                    </StackPanel>
-
-                </Border>
-
-            </Grid>
-
-            <!-- RESULTS -->
-
-            <Grid Grid.Row="3">
-
-                <Grid.ColumnDefinitions>
-
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-
-                </Grid.ColumnDefinitions>
-
-                <!-- RESULT A -->
-
-                <Border Grid.Column="0"
-                        Style="{StaticResource GlassCardStyle}">
-
-                    <DockPanel>
-
-                        <TextBlock DockPanel.Dock="Top"
-                                   Text="Dokument A"
-                                   FontSize="20"
-                                   FontWeight="Bold"/>
-
-                        <RichTextBox Margin="0,10,0,0"
-                                     Background="#202020"
-                                     Foreground="White"/>
-
-                    </DockPanel>
-
-                </Border>
-
-                <!-- RESULT B -->
-
-                <Border Grid.Column="1"
-                        Style="{StaticResource GlassCardStyle}">
-
-                    <DockPanel>
-
-                        <TextBlock DockPanel.Dock="Top"
-                                   Text="Dokument B"
-                                   FontSize="20"
-                                   FontWeight="Bold"/>
-
-                        <RichTextBox Margin="0,10,0,0"
-                                     Background="#202020"
-                                     Foreground="White"/>
-
-                    </DockPanel>
-
-                </Border>
-
-            </Grid>
-
+    <Grid Margin="18">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="DocComparePro" FontSize="30" FontWeight="Bold" />
+                <TextBlock Text="Präziser Vergleich für TXT, PDF und Bilder" Foreground="{StaticResource MutedTextBrush}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Zurücksetzen" Command="{Binding ClearCommand}" />
+                <Button Content="Vergleich starten"
+                        Command="{Binding CompareCommand}"
+                        Background="{StaticResource PrimaryBrush}"
+                        Foreground="#07130F" />
+            </StackPanel>
         </Grid>
 
-        <!-- STATUSBAR -->
+        <Grid Grid.Row="1" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
 
-        <StatusBar DockPanel.Dock="Bottom">
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Dokument A" FontSize="18" FontWeight="Bold" />
+                    <TextBlock Text="{Binding LeftFileName}" Margin="0,6,0,10" Foreground="{StaticResource MutedTextBrush}" />
+                    <Button Content="Datei auswählen" Command="{Binding SelectLeftFileCommand}" HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
 
-            <StatusBarItem>
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Dokument B" FontSize="18" FontWeight="Bold" />
+                    <TextBlock Text="{Binding RightFileName}" Margin="0,6,0,10" Foreground="{StaticResource MutedTextBrush}" />
+                    <Button Content="Datei auswählen" Command="{Binding SelectRightFileCommand}" HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+        </Grid>
 
-                <TextBlock Text="Bereit"/>
+        <Grid Grid.Row="2" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-            </StatusBarItem>
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Vergleichsoptionen" FontSize="17" FontWeight="Bold" Margin="0,0,0,8" />
+                    <WrapPanel>
+                        <CheckBox Content="Groß-/Kleinschreibung" IsChecked="{Binding CaseSensitive}" />
+                        <CheckBox Content="Zahlen vergleichen" IsChecked="{Binding CompareNumbers}" />
+                        <CheckBox Content="Satzzeichen vergleichen" IsChecked="{Binding ComparePunctuation}" />
+                        <CheckBox Content="Leerzeichen normalisieren" IsChecked="{Binding IgnoreWhitespace}" />
+                        <CheckBox Content="OCR für Bilder" IsChecked="{Binding EnableOcr}" />
+                        <CheckBox Content="Satzweise statt wortweise" IsChecked="{Binding UseSentenceMode}" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
 
-        </StatusBar>
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <UniformGrid Columns="4">
+                    <StackPanel Margin="4">
+                        <TextBlock Text="Ähnlichkeit" Foreground="{StaticResource MutedTextBrush}" />
+                        <TextBlock Text="{Binding SimilarityPercentage, StringFormat={}{0:N2} %}" FontSize="21" FontWeight="Bold" />
+                    </StackPanel>
+                    <StackPanel Margin="4">
+                        <TextBlock Text="Unterschiede" Foreground="{StaticResource MutedTextBrush}" />
+                        <TextBlock Text="{Binding DifferenceCount}" FontSize="21" FontWeight="Bold" />
+                    </StackPanel>
+                    <StackPanel Margin="4">
+                        <TextBlock Text="Einheiten" Foreground="{StaticResource MutedTextBrush}" />
+                        <TextBlock Text="{Binding ComparedUnitCount}" FontSize="21" FontWeight="Bold" />
+                    </StackPanel>
+                    <StackPanel Margin="4">
+                        <TextBlock Text="Dauer" Foreground="{StaticResource MutedTextBrush}" />
+                        <TextBlock Text="{Binding ProcessingTime}" FontSize="21" FontWeight="Bold" />
+                    </StackPanel>
+                </UniformGrid>
+            </Border>
+        </Grid>
 
-    </DockPanel>
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="0.75*" />
+            </Grid.ColumnDefinitions>
 
-    </Window>
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Vorschau Dokument A" FontWeight="Bold" Margin="0,0,0,8" />
+                    <TextBox Text="{Binding LeftPreview}"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="NoWrap"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             Background="#0D1425"
+                             Foreground="{StaticResource TextBrush}"
+                             BorderThickness="0"
+                             FontFamily="Consolas" />
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Vorschau Dokument B" FontWeight="Bold" Margin="0,0,0,8" />
+                    <TextBox Text="{Binding RightPreview}"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="NoWrap"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             Background="#0D1425"
+                             Foreground="{StaticResource TextBrush}"
+                             BorderThickness="0"
+                             FontFamily="Consolas" />
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="4" Style="{StaticResource CardStyle}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Gefundene Unterschiede" FontWeight="Bold" Margin="0,0,0,8" />
+                    <DataGrid ItemsSource="{Binding Differences}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              Background="#0D1425"
+                              Foreground="{StaticResource TextBrush}"
+                              BorderThickness="0"
+                              GridLinesVisibility="Horizontal">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" Binding="{Binding Position}" Width="45" />
+                            <DataGridTextColumn Header="Typ" Binding="{Binding Kind}" Width="80" />
+                            <DataGridTextColumn Header="A" Binding="{Binding LeftText}" Width="*" />
+                            <DataGridTextColumn Header="B" Binding="{Binding RightText}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="4" Margin="0,12,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource MutedTextBrush}" />
+            <ProgressBar IsIndeterminate="True"
+                         Visibility="{Binding IsBusy, Converter={x:Static BooleanToVisibilityConverter.Instance}}"
+                         Height="3"
+                         VerticalAlignment="Bottom" />
+        </Grid>
+    </Grid>
+</Window>
