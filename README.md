@@ -1,20 +1,35 @@
 # DocComparePro
 
-DocComparePro ist eine WPF-Desktopanwendung zum Vergleich von TXT-, PDF- und Bilddateien. Die Anwendung verwendet eine saubere MVVM-Struktur, trennt Benutzeroberfläche, Dateiverarbeitung und Vergleichslogik und läuft auf .NET 8.
+DocComparePro ist eine fertige WPF-Desktopanwendung zum lokalen Vergleich von Dokumenten. Die Anwendung läuft auf .NET 8, verwendet MVVM und trennt Benutzeroberfläche, Dateiverarbeitung, Vergleichslogik, Export und Logging klar voneinander.
+
+## Unterstützte Formate
+
+- TXT
+- PDF
+- DOCX
+- PNG
+- JPG / JPEG
+
+Bilddateien werden optional mit Tesseract OCR verarbeitet.
 
 ## Funktionen
 
-- TXT-Dateien direkt einlesen
-- PDF-Texte mit PdfPig extrahieren
-- PNG-, JPG- und JPEG-Dateien mit Tesseract OCR verarbeiten
+- Dateiauswahl und Drag-and-drop für beide Dokumente
 - Wortweiser oder satzweiser Vergleich
-- Groß-/Kleinschreibung optional beachten
-- Zahlen und Satzzeichen optional vergleichen
-- Leerzeichen normalisieren
-- Ähnlichkeit in Prozent berechnen
-- Unterschiede mit Position, Typ und Inhalt anzeigen
-- Verarbeitungszeit und Anzahl geprüfter Einheiten anzeigen
-- Asynchrone Dateiverarbeitung ohne blockierte Oberfläche
+- Erkennung von gleichen, hinzugefügten, entfernten und geänderten Inhalten
+- optionale Berücksichtigung von Groß-/Kleinschreibung
+- optionale Berücksichtigung von Zahlen und Satzzeichen
+- Normalisierung von Leerzeichen
+- Ähnlichkeitswert in Prozent
+- Anzeige von Unterschiedsanzahl, geprüften Einheiten und Verarbeitungszeit
+- getrennte Vorschau beider Dokumente
+- strukturierte Unterschiedsliste
+- HTML- und CSV-Export
+- asynchrone Dateiverarbeitung
+- verständliche Fehlermeldungen
+- technisches Fehlerprotokoll unter `%LocalAppData%/DocComparePro/Logs/application.log`
+- automatisierte xUnit-Tests
+- GitHub-Actions-Build auf Windows
 
 ## Architektur
 
@@ -25,31 +40,40 @@ DocComparePro/
 ├── Core/
 │   ├── Models.cs
 │   ├── DocumentReader.cs
-│   └── ComparisonEngine.cs
+│   ├── ComparisonEngine.cs
+│   ├── ReportExporter.cs
+│   └── FileLogger.cs
 ├── ViewModels/
 │   └── MainViewModel.cs
 └── Views/
     ├── MainWindow.xaml
     └── MainWindow.xaml.cs
+
+DocComparePro.Tests/
+└── ComparisonEngineTests.cs
 ```
 
 ### Verantwortlichkeiten
 
-- `Views`: Darstellung und Bindings
-- `ViewModels`: UI-Zustand, Commands und Ablaufsteuerung
-- `Core/DocumentReader`: TXT-, PDF- und OCR-Verarbeitung
-- `Core/ComparisonEngine`: Tokenisierung, LCS-Diff und Statistik
-- `Core/Models`: unveränderliche Domain-Modelle
+- `Views`: Darstellung, Bindings und ausschließlich UI-spezifische Ereignisse
+- `ViewModels`: Zustand, Commands und Ablaufsteuerung
+- `DocumentReader`: TXT-, PDF-, DOCX- und OCR-Verarbeitung
+- `ComparisonEngine`: Tokenisierung, LCS-Diff und Statistiken
+- `ReportExporter`: HTML- und CSV-Berichte
+- `FileLogger`: persistente technische Fehlerprotokolle
+- `Models`: unveränderliche Domain-Modelle
 
 ## Technologien
 
-- C#
+- C# 12
 - .NET 8
 - WPF
-- MVVM
-- CommunityToolkit.Mvvm
+- MVVM mit CommunityToolkit.Mvvm
 - PdfPig
+- DocumentFormat.OpenXml
 - Tesseract OCR
+- xUnit
+- GitHub Actions
 
 ## Projekt starten
 
@@ -61,15 +85,15 @@ Voraussetzungen:
 
 ```bash
 git clone https://github.com/MagnusMHD/DocComparePro1.git
-cd DocComparePro1/DocComparePro
-dotnet restore
-dotnet build
-dotnet run
+cd DocComparePro1
+dotnet restore DocComparePro.slnx
+dotnet build DocComparePro.slnx --configuration Release
+dotnet run --project DocComparePro/DocComparePro.csproj
 ```
 
 ## OCR einrichten
 
-Für Bildvergleiche wird im Ausgabeordner ein Verzeichnis `tessdata` benötigt. Darin müssen mindestens diese Sprachdateien liegen:
+Für Bildvergleiche müssen diese Dateien unter `DocComparePro/tessdata` liegen:
 
 ```text
 tessdata/
@@ -77,25 +101,22 @@ tessdata/
 └── eng.traineddata
 ```
 
-Ohne diese Dateien funktionieren TXT- und PDF-Vergleiche weiterhin; Bild-OCR zeigt eine verständliche Fehlermeldung.
+Die Dateien werden beim Build in den Ausgabeordner kopiert. TXT-, PDF- und DOCX-Vergleiche funktionieren auch ohne OCR-Sprachdateien.
 
 ## Vergleichsverfahren
 
-Die Anwendung zerlegt Dokumente abhängig vom ausgewählten Modus in Wörter oder Sätze. Anschließend wird über eine Longest-Common-Subsequence-Matrix ein deterministischer Diff erzeugt. Dadurch werden gleiche, entfernte und hinzugefügte Einheiten sauber unterschieden.
+Der Text wird abhängig vom Modus in Wörter oder Sätze zerlegt. Eine Longest-Common-Subsequence-Matrix erzeugt anschließend einen deterministischen Diff. Direkt aufeinanderfolgende Entfernen-/Hinzufügen-Paare werden als Änderung zusammengefasst.
 
-## Clean-Code-Grundsätze
+## Qualität
 
-- kleine Klassen mit klarer Verantwortung
+- klare MVVM-Trennung
 - Abhängigkeiten über Interfaces
-- keine Geschäftslogik im Code-behind
-- unveränderliche Records für Ergebnisse
-- asynchrone Dateioperationen
-- Kommentare nur für nicht offensichtliche technische Entscheidungen
-- verständliche Namen statt unnötiger Abkürzungen
-
-## Aktueller Stand
-
-Der Kernumfang ist implementiert: Dateiauswahl, TXT/PDF/OCR-Einlesen, Wort- und Satzvergleich, Optionen, Statistiken und Ergebnisanzeige. Geplante Erweiterungen sind DOCX-Unterstützung, Export, synchrones Scrollen und semantischer KI-Vergleich.
+- XML-Dokumentationskommentare für öffentliche C#-APIs
+- gezielte `//`-Kommentare für nicht offensichtliche Entscheidungen
+- keine Geschäftslogik im Window-Code-behind
+- Nullable Reference Types
+- Warnungen als Buildfehler
+- automatisierte Tests und Windows-CI
 
 ## Autor
 
