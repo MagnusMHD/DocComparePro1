@@ -7,8 +7,13 @@
     <UseWPF>true</UseWPF>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
     <RootNamespace>DocComparePro</RootNamespace>
     <AssemblyName>DocComparePro</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,10 +26,13 @@
     <Compile Include="Core/Models.cs" />
     <Compile Include="Core/DocumentReader.cs" />
     <Compile Include="Core/ComparisonEngine.cs" />
+    <Compile Include="Core/ReportExporter.cs" />
+    <Compile Include="Core/FileLogger.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
     <PackageReference Include="PdfPig" Version="0.1.15" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
