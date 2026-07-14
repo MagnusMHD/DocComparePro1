@@ -1,0 +1,83 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Main Background -->
+
+    <Color x:Key="BackgroundColor">#0A0A0A</Color>
+    <SolidColorBrush x:Key="BackgroundBrush"
+                     Color="{StaticResource BackgroundColor}" />
+
+    <!-- Panels -->
+
+    <Color x:Key="PanelColor">#181818</Color>
+    <SolidColorBrush x:Key="PanelBrush"
+                     Color="{StaticResource PanelColor}" />
+
+    <!-- RichText -->
+
+    <Color x:Key="EditorColor">#151515</Color>
+    <SolidColorBrush x:Key="EditorBrush"
+                     Color="{StaticResource EditorColor}" />
+
+    <!-- Glass -->
+
+    <Color x:Key="GlassColor">#22FFFFFF</Color>
+    <SolidColorBrush x:Key="GlassBrush"
+                     Color="{StaticResource GlassColor}" />
+
+    <!-- Neon Green -->
+
+    <Color x:Key="NeonGreenColor">#00FFAA</Color>
+    <SolidColorBrush x:Key="NeonGreenBrush"
+                     Color="{StaticResource NeonGreenColor}" />
+
+    <!-- Neon Orange -->
+
+    <Color x:Key="NeonOrangeColor">#FF8800</Color>
+    <SolidColorBrush x:Key="NeonOrangeBrush"
+                     Color="{StaticResource NeonOrangeColor}" />
+
+    <!-- Neon Blue -->
+
+    <Color x:Key="NeonBlueColor">#00D9FF</Color>
+    <SolidColorBrush x:Key="NeonBlueBrush"
+                     Color="{StaticResource NeonBlueColor}" />
+
+    <!-- Text -->
+
+    <Color x:Key="TextColor">#FFFFFF</Color>
+    <SolidColorBrush x:Key="TextBrush"
+                     Color="{StaticResource TextColor}" />
+
+    <!-- Secondary Text -->
+
+    <Color x:Key="SecondaryTextColor">#B0B0B0</Color>
+    <SolidColorBrush x:Key="SecondaryTextBrush"
+                     Color="{StaticResource SecondaryTextColor}" />
+
+    <!-- Borders -->
+
+    <Color x:Key="BorderColor">#40FFFFFF</Color>
+    <SolidColorBrush x:Key="BorderBrush"
+                     Color="{StaticResource BorderColor}" />
+
+    <!-- Success -->
+
+    <Color x:Key="SuccessColor">#00E676</Color>
+    <SolidColorBrush x:Key="SuccessBrush"
+                     Color="{StaticResource SuccessColor}" />
+
+    <!-- Warning -->
+
+    <Color x:Key="WarningColor">#FFC107</Color>
+    <SolidColorBrush x:Key="WarningBrush"
+                     Color="{StaticResource WarningColor}" />
+
+    <!-- Error -->
+
+    <Color x:Key="ErrorColor">#F44336</Color>
+    <SolidColorBrush x:Key="ErrorBrush"
+                     Color="{StaticResource ErrorColor}" />
+
+</ResourceDictionary>
