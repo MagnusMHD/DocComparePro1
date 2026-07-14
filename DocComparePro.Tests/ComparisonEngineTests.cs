@@ -35,7 +35,7 @@ public sealed class ComparisonEngineTests
         var result = engine.Compare("Hallo", "HALLO", CreateOptions(caseSensitive: true));
 
         Assert.True(result.SimilarityPercentage < 100d);
-        Assert.Contains(result.Differences, item => item.Kind == DifferenceKind.Changed);
+        Assert.Contains(result.Differences, item => item.Kind != DifferenceKind.Equal);
     }
 
     [Fact]
@@ -48,14 +48,22 @@ public sealed class ComparisonEngineTests
     }
 
     [Fact]
-    public void Compare_ReplacedWord_ProducesChangedDifference()
+    public void Compare_Typo_ProducesChangedDifferenceWithPartialSimilarity()
     {
-        var result = engine.Compare("rot", "blau", CreateOptions());
+        var result = engine.Compare("Bestellung", "Bestelung", CreateOptions());
 
         var difference = Assert.Single(result.Differences);
         Assert.Equal(DifferenceKind.Changed, difference.Kind);
-        Assert.Equal("rot", difference.LeftText);
-        Assert.Equal("blau", difference.RightText);
+        Assert.InRange(result.SimilarityPercentage, 80d, 99.99d);
+    }
+
+    [Fact]
+    public void Compare_UnrelatedWords_RemainAddedAndRemoved()
+    {
+        var result = engine.Compare("rot", "blau", CreateOptions());
+
+        Assert.Contains(result.Differences, item => item.Kind == DifferenceKind.Removed);
+        Assert.Contains(result.Differences, item => item.Kind == DifferenceKind.Added);
     }
 
     [Fact]
@@ -63,7 +71,7 @@ public sealed class ComparisonEngineTests
     {
         var result = engine.Compare(
             "Erster Satz. Zweiter Satz.",
-            "Erster Satz. Geänderter Satz.",
+            "Erster Satz. Zweiter geänderter Satz.",
             CreateOptions(mode: ComparisonMode.Sentences));
 
         Assert.Equal(2, result.ComparedUnitCount);
@@ -93,6 +101,28 @@ public sealed class ComparisonEngineTests
     }
 
     [Fact]
+    public void Compare_CancelledToken_ThrowsOperationCancelledException()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() =>
+            engine.Compare("eins zwei", "eins drei", CreateOptions(), cancellation.Token));
+    }
+
+    [Fact]
+    public void Compare_ReportsProgressUntilComplete()
+    {
+        var reportedValues = new List<int>();
+        var progress = new InlineProgress<int>(reportedValues.Add);
+
+        engine.Compare("eins zwei drei", "eins zwei vier", CreateOptions(), progress: progress);
+
+        Assert.NotEmpty(reportedValues);
+        Assert.Equal(100, reportedValues[^1]);
+    }
+
+    [Fact]
     public void Compare_EmptyDocuments_ReturnFullSimilarity()
     {
         var result = engine.Compare(string.Empty, string.Empty, CreateOptions());
@@ -114,4 +144,9 @@ public sealed class ComparisonEngineTests
             comparePunctuation,
             IgnoreWhitespace: true,
             EnableOcr: false);
+
+    private sealed class InlineProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
+    }
 }
