@@ -1,441 +1,128 @@
 # DocComparePro
 
-<div align="center">
+DocComparePro ist eine fertige WPF-Desktopanwendung zum lokalen Vergleich von Dokumenten. Die Anwendung läuft auf .NET 8, verwendet MVVM und trennt Benutzeroberfläche, Dateiverarbeitung, Vergleichslogik, Export und Logging klar voneinander.
 
-# 📄 DocComparePro
+## Unterstützte Formate
 
-### Modern Document Comparison Tool for Text, PDF and Images
+- TXT
+- PDF
+- DOCX
+- PNG
+- JPG / JPEG
 
-Compare documents with high precision using **Word-to-Word** and **Sentence-to-Sentence** analysis.
+Bilddateien werden optional mit Tesseract OCR verarbeitet.
 
-Designed with a modern **Glassmorphism UI**, Neon Effects, OCR support and detailed difference highlighting.
+## Funktionen
 
-***
+- Dateiauswahl und Drag-and-drop für beide Dokumente
+- Wortweiser oder satzweiser Vergleich
+- Erkennung von gleichen, hinzugefügten, entfernten und geänderten Inhalten
+- optionale Berücksichtigung von Groß-/Kleinschreibung
+- optionale Berücksichtigung von Zahlen und Satzzeichen
+- Normalisierung von Leerzeichen
+- Ähnlichkeitswert in Prozent
+- Anzeige von Unterschiedsanzahl, geprüften Einheiten und Verarbeitungszeit
+- getrennte Vorschau beider Dokumente
+- strukturierte Unterschiedsliste
+- HTML- und CSV-Export
+- asynchrone Dateiverarbeitung
+- verständliche Fehlermeldungen
+- technisches Fehlerprotokoll unter `%LocalAppData%/DocComparePro/Logs/application.log`
+- automatisierte xUnit-Tests
+- GitHub-Actions-Build auf Windows
 
-<https://img.shields.io/badge/.NET-8.0-blue>
-<https://img.shields.io/badge/WPF-Windows-512BD4>
-<https://img.shields.io/badge/License-MIT-green>
-<https://img.shields.io/badge/Status-In%20Development-orange>
-
-</div>
-
-***
-
-# ✨ Features
-
-## Supported File Types
-
-✅ TXT
-
-✅ PDF
-
-✅ PNG
-
-✅ JPG
-
-✅ JPEG
-
-***
-
-## Comparison Modes
-
-### Word-to-Word
-
-Compares every single word exactly.
-
-Detects:
-
-* Changed words
-* Missing words
-* Added words
-* Number differences
-* Typing errors
-
-***
-
-### Sentence-to-Sentence
-
-Compares complete sentences.
-
-Detects:
-
-* Changed statements
-* Missing sentences
-* Reordered content
-* Added information
-
-***
-
-## OCR Support
-
-Images can be processed automatically using OCR.
+## Architektur
 
 ```text
-Image
-   ↓
-OCR
-   ↓
-Extract Text
-   ↓
-Comparison
-```
-
-Supported:
-
-* PNG
-* JPG
-* JPEG
-
-***
-
-## PDF Support
-
-Extracts text from PDF documents automatically.
-
-```text
-PDF
- ↓
-Text Extraction
- ↓
-Document Analysis
- ↓
-Comparison
-```
-
-***
-
-## Highlighting System
-
-### Document A
-
-Differences are highlighted with:
-
-```text
-Neon Green
-```
-
-Color:
-
-```csharp
-#00FFAA
-```
-
-***
-
-### Document B
-
-Differences are highlighted with:
-
-```text
-Neon Orange
-```
-
-Color:
-
-```csharp
-#FF8800
-```
-
-***
-
-## Statistics Dashboard
-
-Displays:
-
-* Similarity Percentage
-* Number of Differences
-* Checked Words
-* Checked Sentences
-* Processing Time
-
-Example:
-
-```text
-Similarity:      94.82 %
-Differences:     17
-Words Checked:   1,425
-```
-
-***
-
-# 🖥 User Interface
-
-## Glassmorphism Design
-
-Modern transparent UI elements.
-
-Features:
-
-* Rounded Corners
-* Neon Effects
-* Dark Theme
-* Professional Desktop Layout
-
-***
-
-## Dashboard Layout
-
-```text
-┌───────────────────────────────────────┐
-│ DocComparePro                    _ □ X│
-├───────────────────────────────────────┤
-│                                       │
-│ Document A      Document B            │
-│ Upload Area     Upload Area           │
-│                                       │
-│ Comparison Settings                   │
-│                                       │
-│ Start Comparison                      │
-│                                       │
-│ Similarity Statistics                 │
-│                                       │
-│ Results A          Results B          │
-│                                       │
-└───────────────────────────────────────┘
-```
-
-***
-
-# ⚙ Comparison Options
-
-Supported settings:
-
-```text
-✔ Case Sensitive
-
-✔ Compare Numbers
-
-✔ Compare Punctuation
-
-✔ Ignore Whitespace
-
-✔ OCR for Images
-
-✔ Automatic PDF Reading
-```
-
-***
-
-# 🏗 Project Structure
-
-```text
-DocComparePro
-│
+DocComparePro/
 ├── App.xaml
-│
-├── Resources
-│   ├── Colors.xaml
-│   ├── Styles.xaml
-│   └── Animations.xaml
-│
-├── Models
-│   ├── CompareResult.cs
-│   ├── DifferenceItem.cs
-│   └── DocumentContent.cs
-│
-├── Services
-│   ├── FileLoaderService.cs
-│   ├── PdfReaderService.cs
-│   ├── OcrService.cs
-│   ├── WordComparer.cs
-│   └── SentenceComparer.cs
-│
-├── ViewModels
-│   ├── MainViewModel.cs
-│   └── RelayCommand.cs
-│
-├── Views
-│   ├── MainWindow.xaml
-│   ├── SettingsWindow.xaml
-│   ├── AboutWindow.xaml
-│   └── ExportWindow.xaml
-│
-└── Assets
+├── App.xaml.cs
+├── Core/
+│   ├── Models.cs
+│   ├── DocumentReader.cs
+│   ├── ComparisonEngine.cs
+│   ├── ReportExporter.cs
+│   └── FileLogger.cs
+├── ViewModels/
+│   └── MainViewModel.cs
+└── Views/
+    ├── MainWindow.xaml
+    └── MainWindow.xaml.cs
+
+DocComparePro.Tests/
+└── ComparisonEngineTests.cs
 ```
 
-***
+### Verantwortlichkeiten
 
-# 🛠 Technologies
+- `Views`: Darstellung, Bindings und ausschließlich UI-spezifische Ereignisse
+- `ViewModels`: Zustand, Commands und Ablaufsteuerung
+- `DocumentReader`: TXT-, PDF-, DOCX- und OCR-Verarbeitung
+- `ComparisonEngine`: Tokenisierung, LCS-Diff und Statistiken
+- `ReportExporter`: HTML- und CSV-Berichte
+- `FileLogger`: persistente technische Fehlerprotokolle
+- `Models`: unveränderliche Domain-Modelle
 
-## Frontend
+## Technologien
 
-* WPF
-* XAML
-* MVVM
+- C# 12
+- .NET 8
+- WPF
+- MVVM mit CommunityToolkit.Mvvm
+- PdfPig
+- DocumentFormat.OpenXml
+- Tesseract OCR
+- xUnit
+- GitHub Actions
 
-## Backend
+## Projekt starten
 
-* C#
-* .NET 8
+Voraussetzungen:
 
-## Libraries
-
-### PDF
-
-```text
-PdfPig
-```
-
-### OCR
-
-```text
-Tesseract OCR
-```
-
-### MVVM
-
-```text
-CommunityToolkit.Mvvm
-```
-
-***
-
-# 📦 Required NuGet Packages
-
-```powershell
-Install-Package PdfPig
-
-Install-Package Tesseract
-
-Install-Package CommunityToolkit.Mvvm
-
-Install-Package Microsoft.Xaml.Behaviors.Wpf
-```
-
-***
-
-# 🚀 Getting Started
-
-## Clone Repository
+- Windows 10 oder Windows 11
+- Visual Studio 2022 mit Workload **.NET-Desktopentwicklung**
+- .NET 8 SDK
 
 ```bash
-git clone https://github.com/yourusername/DocComparePro.git
+git clone https://github.com/MagnusMHD/DocComparePro1.git
+cd DocComparePro1
+dotnet restore DocComparePro.slnx
+dotnet build DocComparePro.slnx --configuration Release
+dotnet run --project DocComparePro/DocComparePro.csproj
 ```
 
-***
+## OCR einrichten
 
-## Open Project
+Für Bildvergleiche müssen diese Dateien unter `DocComparePro/tessdata` liegen:
 
 ```text
-Visual Studio 2022
+tessdata/
+├── deu.traineddata
+└── eng.traineddata
 ```
 
-Recommended:
+Die Dateien werden beim Build in den Ausgabeordner kopiert. TXT-, PDF- und DOCX-Vergleiche funktionieren auch ohne OCR-Sprachdateien.
 
-```text
-.NET 8 SDK
-```
+## Vergleichsverfahren
 
-***
+Der Text wird abhängig vom Modus in Wörter oder Sätze zerlegt. Eine Longest-Common-Subsequence-Matrix erzeugt anschließend einen deterministischen Diff. Direkt aufeinanderfolgende Entfernen-/Hinzufügen-Paare werden als Änderung zusammengefasst.
 
-## Build
+## Qualität
 
-```bash
-Build Solution
-```
+- klare MVVM-Trennung
+- Abhängigkeiten über Interfaces
+- XML-Dokumentationskommentare für öffentliche C#-APIs
+- gezielte `//`-Kommentare für nicht offensichtliche Entscheidungen
+- keine Geschäftslogik im Window-Code-behind
+- Nullable Reference Types
+- Warnungen als Buildfehler
+- automatisierte Tests und Windows-CI
 
-or
+## Autor
 
-```bash
-dotnet build
-```
+**Mahdi Mohebi**  
+Apprentice Software Developer, Germany
 
-***
+## Lizenz
 
-## Run
-
-```bash
-dotnet run
-```
-
-***
-
-# 📋 Planned Features
-
-## Version 1.1
-
-* Drag & Drop Animation
-* Dark/Light Theme
-* Faster Comparison Engine
-
-***
-
-## Version 1.2
-
-* DOCX Support
-* Excel Support
-* Batch Comparison
-
-***
-
-## Version 1.3
-
-* Side-by-Side Synchronised Scrolling
-* Difference Navigation Panel
-* Search Function
-
-***
-
-## Version 2.0
-
-* AI-Assisted Difference Detection
-* Semantic Comparison
-* Cloud Reports
-* Multi-Language OCR
-
-***
-
-# 🎯 Main Goal
-
-DocComparePro aims to provide a professional desktop solution for comparing:
-
-```text
-PDF ↔ PDF
-
-PDF ↔ Image
-
-PDF ↔ TXT
-
-TXT ↔ TXT
-
-Image ↔ Image
-
-Image ↔ PDF
-```
-
-with precise detection of differences including:
-
-* Words
-* Sentences
-* Numbers
-* Dates
-* Symbols
-* Formatting Variations
-
-***
-
-# 👨‍💻 Author
-
-**Mahdi Mohebi**
-
-Apprentice Software Developer
-
-Germany
-
-***
-
-# 📄 License
-
-```text
-MIT License
-```
-
-Feel free to use, modify and contribute to this project.
-
-***
-
-<div align="center">
-
-### ⭐ If you like this project, consider giving it a star ⭐
-
-</div>
+MIT

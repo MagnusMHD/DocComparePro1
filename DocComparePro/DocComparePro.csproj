@@ -1,18 +1,43 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <RootNamespace>DocComparePro</RootNamespace>
+    <AssemblyName>DocComparePro</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <ApplicationDefinition Include="App.xaml" />
+    <Page Include="Views/MainWindow.xaml" />
+
+    <Compile Include="App.xaml.cs" />
+    <Compile Include="Views/MainWindow.xaml.cs" />
+    <Compile Include="ViewModels/MainViewModel.cs" />
+    <Compile Include="Core/Models.cs" />
+    <Compile Include="Core/DocumentReader.cs" />
+    <Compile Include="Core/ComparisonEngine.cs" />
+    <Compile Include="Core/ReportExporter.cs" />
+    <Compile Include="Core/FileLogger.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
     <PackageReference Include="PdfPig" Version="0.1.15" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="tessdata/**/*" CopyToOutputDirectory="PreserveNewest" Condition="Exists('tessdata')" />
+  </ItemGroup>
 </Project>

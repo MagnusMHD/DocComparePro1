@@ -1,0 +1,44 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ master, feature/complete-mvvm-rebuild ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore solution
+        run: dotnet restore DocComparePro.slnx --verbosity quiet
+
+      - name: Build solution
+        shell: pwsh
+        run: |
+          dotnet build DocComparePro.slnx --configuration Release --no-restore --verbosity minimal *> build.log
+          $exitCode = $LASTEXITCODE
+          Get-Content build.log
+          exit $exitCode
+
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics
+          path: build.log
+
+      - name: Run tests
+        run: dotnet test DocComparePro.Tests/DocComparePro.Tests.csproj --configuration Release --no-build --verbosity quiet
