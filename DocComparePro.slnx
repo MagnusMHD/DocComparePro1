@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="DocComparePro/DocComparePro.csproj" />
+  <Project Path="DocComparePro.Tests/DocComparePro.Tests.csproj" />
 </Solution>
