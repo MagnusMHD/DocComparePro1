@@ -22,14 +22,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore application
-        run: dotnet restore DocComparePro/DocComparePro.csproj
+      - name: Restore solution
+        run: dotnet restore DocComparePro.slnx --verbosity quiet
 
-      - name: Build application
-        run: dotnet build DocComparePro/DocComparePro.csproj --configuration Release --no-restore
-
-      - name: Restore tests
-        run: dotnet restore DocComparePro.Tests/DocComparePro.Tests.csproj
+      - name: Build solution
+        run: dotnet build DocComparePro.slnx --configuration Release --no-restore --verbosity quiet
 
       - name: Run tests
-        run: dotnet test DocComparePro.Tests/DocComparePro.Tests.csproj --configuration Release --no-restore --verbosity normal
+        run: dotnet test DocComparePro.Tests/DocComparePro.Tests.csproj --configuration Release --no-build --verbosity quiet
