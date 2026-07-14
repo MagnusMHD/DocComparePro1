@@ -3,6 +3,9 @@ using Xunit;
 
 namespace DocComparePro.Tests;
 
+/// <summary>
+/// Verifies the deterministic behavior of the comparison engine.
+/// </summary>
 public sealed class ComparisonEngineTests
 {
     private readonly ComparisonEngine engine = new();
@@ -32,7 +35,7 @@ public sealed class ComparisonEngineTests
         var result = engine.Compare("Hallo", "HALLO", CreateOptions(caseSensitive: true));
 
         Assert.True(result.SimilarityPercentage < 100d);
-        Assert.True(result.DifferenceCount > 0);
+        Assert.Contains(result.Differences, item => item.Kind == DifferenceKind.Changed);
     }
 
     [Fact]
@@ -45,6 +48,17 @@ public sealed class ComparisonEngineTests
     }
 
     [Fact]
+    public void Compare_ReplacedWord_ProducesChangedDifference()
+    {
+        var result = engine.Compare("rot", "blau", CreateOptions());
+
+        var difference = Assert.Single(result.Differences);
+        Assert.Equal(DifferenceKind.Changed, difference.Kind);
+        Assert.Equal("rot", difference.LeftText);
+        Assert.Equal("blau", difference.RightText);
+    }
+
+    [Fact]
     public void Compare_SentenceMode_ComparesCompleteSentences()
     {
         var result = engine.Compare(
@@ -53,7 +67,29 @@ public sealed class ComparisonEngineTests
             CreateOptions(mode: ComparisonMode.Sentences));
 
         Assert.Equal(2, result.ComparedUnitCount);
-        Assert.True(result.DifferenceCount > 0);
+        Assert.Contains(result.Differences, item => item.Kind == DifferenceKind.Changed);
+    }
+
+    [Fact]
+    public void Compare_DisabledNumberComparison_IgnoresDigitChanges()
+    {
+        var result = engine.Compare(
+            "Rechnung 123",
+            "Rechnung 987",
+            CreateOptions(compareNumbers: false));
+
+        Assert.Equal(100d, result.SimilarityPercentage);
+    }
+
+    [Fact]
+    public void Compare_DisabledPunctuationComparison_IgnoresPunctuation()
+    {
+        var result = engine.Compare(
+            "Hallo, Welt!",
+            "Hallo Welt",
+            CreateOptions(comparePunctuation: false));
+
+        Assert.Equal(100d, result.SimilarityPercentage);
     }
 
     [Fact]
@@ -68,12 +104,14 @@ public sealed class ComparisonEngineTests
 
     private static ComparisonOptions CreateOptions(
         ComparisonMode mode = ComparisonMode.Words,
-        bool caseSensitive = false) =>
+        bool caseSensitive = false,
+        bool compareNumbers = true,
+        bool comparePunctuation = true) =>
         new(
             mode,
             caseSensitive,
-            CompareNumbers: true,
-            ComparePunctuation: true,
+            compareNumbers,
+            comparePunctuation,
             IgnoreWhitespace: true,
             EnableOcr: false);
 }
