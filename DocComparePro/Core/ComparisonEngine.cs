@@ -12,7 +12,12 @@ public interface IComparisonEngine
     /// <summary>
     /// Compares two texts using the supplied options.
     /// </summary>
-    ComparisonResult Compare(string leftText, string rightText, ComparisonOptions options);
+    ComparisonResult Compare(
+        string leftText,
+        string rightText,
+        ComparisonOptions options,
+        CancellationToken cancellationToken = default,
+        IProgress<int>? progress = null);
 }
 
 /// <summary>
@@ -20,6 +25,8 @@ public interface IComparisonEngine
 /// </summary>
 public sealed class ComparisonEngine : IComparisonEngine
 {
+    private const double ReplacementThreshold = 0.35;
+
     private static readonly Regex WordTokenizer =
         new(@"\p{L}+[\p{L}\p{M}'’-]*|\p{N}+(?:[.,]\p{N}+)*|[^\s]", RegexOptions.Compiled);
 
@@ -27,24 +34,34 @@ public sealed class ComparisonEngine : IComparisonEngine
         new(@"(?<=[.!?])\s+|\r?\n+", RegexOptions.Compiled);
 
     /// <inheritdoc />
-    public ComparisonResult Compare(string leftText, string rightText, ComparisonOptions options)
+    public ComparisonResult Compare(
+        string leftText,
+        string rightText,
+        ComparisonOptions options,
+        CancellationToken cancellationToken = default,
+        IProgress<int>? progress = null)
     {
         ArgumentNullException.ThrowIfNull(leftText);
         ArgumentNullException.ThrowIfNull(rightText);
         ArgumentNullException.ThrowIfNull(options);
 
         var stopwatch = Stopwatch.StartNew();
+        progress?.Report(5);
+
         var leftUnits = Tokenize(leftText, options);
         var rightUnits = Tokenize(rightText, options);
-        var rawDifferences = BuildDiff(leftUnits, rightUnits, options);
-        var differences = CombineReplacements(rawDifferences);
-        stopwatch.Stop();
+        cancellationToken.ThrowIfCancellationRequested();
+        progress?.Report(15);
 
-        var equalCount = differences.Count(item => item.Kind == DifferenceKind.Equal);
+        var rawDifferences = BuildDiff(leftUnits, rightUnits, options, cancellationToken, progress);
+        var differences = CombineReplacements(rawDifferences, options);
+        cancellationToken.ThrowIfCancellationRequested();
+        progress?.Report(90);
+
         var comparedUnitCount = Math.Max(leftUnits.Count, rightUnits.Count);
-        var similarity = comparedUnitCount == 0
-            ? 100d
-            : Math.Round(equalCount * 100d / comparedUnitCount, 2);
+        var similarity = CalculateSimilarity(differences, comparedUnitCount, options);
+        stopwatch.Stop();
+        progress?.Report(100);
 
         return new ComparisonResult(
             differences,
@@ -76,18 +93,26 @@ public sealed class ComparisonEngine : IComparisonEngine
     private static IReadOnlyList<DifferenceItem> BuildDiff(
         IReadOnlyList<string> left,
         IReadOnlyList<string> right,
-        ComparisonOptions options)
+        ComparisonOptions options,
+        CancellationToken cancellationToken,
+        IProgress<int>? progress)
     {
         var table = new int[left.Count + 1, right.Count + 1];
+        var totalRows = Math.Max(left.Count, 1);
 
         for (var leftIndex = left.Count - 1; leftIndex >= 0; leftIndex--)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             for (var rightIndex = right.Count - 1; rightIndex >= 0; rightIndex--)
             {
                 table[leftIndex, rightIndex] = AreEqual(left[leftIndex], right[rightIndex], options)
                     ? table[leftIndex + 1, rightIndex + 1] + 1
                     : Math.Max(table[leftIndex + 1, rightIndex], table[leftIndex, rightIndex + 1]);
             }
+
+            var completedRows = left.Count - leftIndex;
+            progress?.Report(15 + (int)(completedRows * 60d / totalRows));
         }
 
         var result = new List<DifferenceItem>();
@@ -97,6 +122,8 @@ public sealed class ComparisonEngine : IComparisonEngine
 
         while (leftPosition < left.Count && rightPosition < right.Count)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (AreEqual(left[leftPosition], right[rightPosition], options))
             {
                 result.Add(new DifferenceItem(
@@ -144,8 +171,10 @@ public sealed class ComparisonEngine : IComparisonEngine
         return result;
     }
 
-    // Adjacent remove/add pairs are easier for users to understand as one replacement.
-    private static IReadOnlyList<DifferenceItem> CombineReplacements(IReadOnlyList<DifferenceItem> source)
+    // Adjacent remove/add pairs become one replacement when both values are sufficiently related.
+    private static IReadOnlyList<DifferenceItem> CombineReplacements(
+        IReadOnlyList<DifferenceItem> source,
+        ComparisonOptions options)
     {
         var result = new List<DifferenceItem>(source.Count);
 
@@ -156,19 +185,82 @@ public sealed class ComparisonEngine : IComparisonEngine
                 index + 1 < source.Count &&
                 source[index + 1].Kind == DifferenceKind.Added)
             {
-                var added = source[++index];
-                result.Add(new DifferenceItem(
-                    DifferenceKind.Changed,
-                    current.LeftText,
-                    added.RightText,
-                    current.Position));
-                continue;
+                var added = source[index + 1];
+                var similarity = CalculateUnitSimilarity(current.LeftText, added.RightText, options);
+                if (similarity >= ReplacementThreshold)
+                {
+                    index++;
+                    result.Add(new DifferenceItem(
+                        DifferenceKind.Changed,
+                        current.LeftText,
+                        added.RightText,
+                        current.Position));
+                    continue;
+                }
             }
 
             result.Add(current);
         }
 
         return result;
+    }
+
+    private static double CalculateSimilarity(
+        IReadOnlyList<DifferenceItem> differences,
+        int comparedUnitCount,
+        ComparisonOptions options)
+    {
+        if (comparedUnitCount == 0)
+        {
+            return 100d;
+        }
+
+        var score = differences.Sum(item => item.Kind switch
+        {
+            DifferenceKind.Equal => 1d,
+            DifferenceKind.Changed => CalculateUnitSimilarity(item.LeftText, item.RightText, options),
+            _ => 0d
+        });
+
+        return Math.Round(Math.Min(100d, score * 100d / comparedUnitCount), 2);
+    }
+
+    private static double CalculateUnitSimilarity(string left, string right, ComparisonOptions options)
+    {
+        var normalizedLeft = Normalize(left, options);
+        var normalizedRight = Normalize(right, options);
+        var longestLength = Math.Max(normalizedLeft.Length, normalizedRight.Length);
+
+        if (longestLength == 0)
+        {
+            return 1d;
+        }
+
+        var distance = CalculateLevenshteinDistance(normalizedLeft, normalizedRight);
+        return 1d - distance / (double)longestLength;
+    }
+
+    private static int CalculateLevenshteinDistance(string left, string right)
+    {
+        var previous = Enumerable.Range(0, right.Length + 1).ToArray();
+        var current = new int[right.Length + 1];
+
+        for (var leftIndex = 1; leftIndex <= left.Length; leftIndex++)
+        {
+            current[0] = leftIndex;
+
+            for (var rightIndex = 1; rightIndex <= right.Length; rightIndex++)
+            {
+                var substitutionCost = left[leftIndex - 1] == right[rightIndex - 1] ? 0 : 1;
+                current[rightIndex] = Math.Min(
+                    Math.Min(current[rightIndex - 1] + 1, previous[rightIndex] + 1),
+                    previous[rightIndex - 1] + substitutionCost);
+            }
+
+            (previous, current) = (current, previous);
+        }
+
+        return previous[right.Length];
     }
 
     private static bool AreEqual(string left, string right, ComparisonOptions options)
@@ -191,11 +283,10 @@ public sealed class ComparisonEngine : IComparisonEngine
 
         if (!options.CompareNumbers)
         {
-            // Removing digits means values such as invoice numbers do not influence equality.
             normalized = Regex.Replace(normalized, @"\d", string.Empty);
         }
 
-        return normalized;
+        return options.CaseSensitive ? normalized : normalized.ToUpperInvariant();
     }
 
     private static string NormalizeWhitespace(string value, bool normalize) =>

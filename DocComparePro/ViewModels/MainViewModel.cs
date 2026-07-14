@@ -17,13 +17,12 @@ public partial class MainViewModel : ObservableObject
     private readonly IReportExporter reportExporter;
     private readonly IFileLogger logger;
     private ComparisonResult? currentResult;
+    private CancellationTokenSource? comparisonCancellation;
 
     [ObservableProperty] private string leftFilePath = string.Empty;
     [ObservableProperty] private string rightFilePath = string.Empty;
     [ObservableProperty] private string leftFileName = "Keine Datei ausgewählt";
     [ObservableProperty] private string rightFileName = "Keine Datei ausgewählt";
-    [ObservableProperty] private string leftPreview = string.Empty;
-    [ObservableProperty] private string rightPreview = string.Empty;
     [ObservableProperty] private bool caseSensitive;
     [ObservableProperty] private bool compareNumbers = true;
     [ObservableProperty] private bool comparePunctuation = true;
@@ -31,13 +30,18 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool enableOcr = true;
     [ObservableProperty] private bool useSentenceMode;
     [ObservableProperty] private bool isBusy;
+    [ObservableProperty] private int comparisonProgress;
     [ObservableProperty] private double similarityPercentage;
     [ObservableProperty] private int differenceCount;
     [ObservableProperty] private int comparedUnitCount;
     [ObservableProperty] private string processingTime = "0 ms";
     [ObservableProperty] private string statusMessage = "Bereit";
+    [ObservableProperty] private DifferenceItem? selectedDifference;
 
-    /// <summary>Contains only added, removed and changed units for display.</summary>
+    /// <summary>Contains every aligned unit for the synchronized document views.</summary>
+    public ObservableCollection<DifferenceItem> AlignedDifferences { get; } = new();
+
+    /// <summary>Contains only added, removed and changed units for the compact result table.</summary>
     public ObservableCollection<DifferenceItem> Differences { get; } = new();
 
     /// <summary>
@@ -69,21 +73,41 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanCompare))]
     private async Task CompareAsync()
     {
+        comparisonCancellation?.Dispose();
+        comparisonCancellation = new CancellationTokenSource();
+        var cancellationToken = comparisonCancellation.Token;
+
         IsBusy = true;
-        StatusMessage = "Dokumente werden gelesen und verglichen …";
+        ComparisonProgress = 0;
+        StatusMessage = "Dokumente werden gelesen …";
 
         try
         {
             var options = CreateOptions();
-            var leftTask = documentReader.ReadAsync(LeftFilePath, options.EnableOcr);
-            var rightTask = documentReader.ReadAsync(RightFilePath, options.EnableOcr);
+            var leftTask = documentReader.ReadAsync(LeftFilePath, options.EnableOcr, cancellationToken);
+            var rightTask = documentReader.ReadAsync(RightFilePath, options.EnableOcr, cancellationToken);
             await Task.WhenAll(leftTask, rightTask);
 
+            cancellationToken.ThrowIfCancellationRequested();
+            StatusMessage = "Dokumente werden verglichen …";
+            var progress = new Progress<int>(value => ComparisonProgress = value);
+
             currentResult = await Task.Run(() =>
-                comparisonEngine.Compare(leftTask.Result.Text, rightTask.Result.Text, options));
+                comparisonEngine.Compare(
+                    leftTask.Result.Text,
+                    rightTask.Result.Text,
+                    options,
+                    cancellationToken,
+                    progress),
+                cancellationToken);
 
             ApplyResult(currentResult);
             StatusMessage = "Vergleich erfolgreich abgeschlossen.";
+        }
+        catch (OperationCanceledException)
+        {
+            ResetResult();
+            StatusMessage = "Vergleich wurde abgebrochen.";
         }
         catch (Exception exception)
         {
@@ -94,7 +118,16 @@ public partial class MainViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+            comparisonCancellation?.Dispose();
+            comparisonCancellation = null;
         }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCancel))]
+    private void CancelComparison()
+    {
+        StatusMessage = "Vergleich wird abgebrochen …";
+        comparisonCancellation?.Cancel();
     }
 
     [RelayCommand(CanExecute = nameof(CanExport))]
@@ -136,6 +169,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void Clear()
     {
+        comparisonCancellation?.Cancel();
         LeftFilePath = string.Empty;
         RightFilePath = string.Empty;
         LeftFileName = "Keine Datei ausgewählt";
@@ -170,6 +204,8 @@ public partial class MainViewModel : ObservableObject
     private bool CanCompare() =>
         !IsBusy && File.Exists(LeftFilePath) && File.Exists(RightFilePath);
 
+    private bool CanCancel() => IsBusy;
+
     private bool CanExport() => !IsBusy && currentResult is not null;
 
     partial void OnIsBusyChanged(bool value) => NotifyCommandStates();
@@ -177,6 +213,7 @@ public partial class MainViewModel : ObservableObject
     private void NotifyCommandStates()
     {
         CompareCommand.NotifyCanExecuteChanged();
+        CancelComparisonCommand.NotifyCanExecuteChanged();
         ExportCommand.NotifyCanExecuteChanged();
     }
 
@@ -190,31 +227,38 @@ public partial class MainViewModel : ObservableObject
 
     private void ApplyResult(ComparisonResult result)
     {
+        AlignedDifferences.Clear();
         Differences.Clear();
-        foreach (var difference in result.Differences.Where(item => item.Kind != DifferenceKind.Equal))
+
+        foreach (var difference in result.Differences)
         {
-            Differences.Add(difference);
+            AlignedDifferences.Add(difference);
+            if (difference.Kind != DifferenceKind.Equal)
+            {
+                Differences.Add(difference);
+            }
         }
 
-        LeftPreview = result.LeftPreview;
-        RightPreview = result.RightPreview;
         SimilarityPercentage = result.SimilarityPercentage;
         DifferenceCount = result.DifferenceCount;
         ComparedUnitCount = result.ComparedUnitCount;
         ProcessingTime = $"{result.ProcessingTime.TotalMilliseconds:N0} ms";
+        SelectedDifference = Differences.FirstOrDefault();
+        ComparisonProgress = 100;
         NotifyCommandStates();
     }
 
     private void ResetResult()
     {
         currentResult = null;
+        AlignedDifferences.Clear();
         Differences.Clear();
-        LeftPreview = string.Empty;
-        RightPreview = string.Empty;
+        SelectedDifference = null;
         SimilarityPercentage = 0;
         DifferenceCount = 0;
         ComparedUnitCount = 0;
         ProcessingTime = "0 ms";
+        ComparisonProgress = 0;
         ExportCommand.NotifyCanExecuteChanged();
     }
 

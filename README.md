@@ -1,6 +1,6 @@
 # DocComparePro
 
-DocComparePro ist eine fertige WPF-Desktopanwendung zum lokalen Vergleich von Dokumenten. Die Anwendung läuft auf .NET 8, verwendet MVVM und trennt Benutzeroberfläche, Dateiverarbeitung, Vergleichslogik, Export und Logging klar voneinander.
+DocComparePro ist eine WPF-Desktopanwendung zum lokalen Vergleich von Dokumenten. Die Anwendung läuft auf .NET 8, verwendet MVVM und trennt Benutzeroberfläche, Dateiverarbeitung, Vergleichslogik, Export und Logging klar voneinander.
 
 ## Unterstützte Formate
 
@@ -15,14 +15,20 @@ Bilddateien werden optional mit Tesseract OCR verarbeitet.
 ## Funktionen
 
 - Dateiauswahl und Drag-and-drop für beide Dokumente
-- Wortweiser oder satzweiser Vergleich
+- wortweiser oder satzweiser Vergleich
 - Erkennung von gleichen, hinzugefügten, entfernten und geänderten Inhalten
+- Tippfehler und ähnliche Ersetzungen über Levenshtein-Distanz erkennen
+- anteilige Ähnlichkeit für geänderte Wörter und Sätze
+- Unterschiede direkt in beiden Dokumentansichten farbig markieren
+- synchrones horizontales und vertikales Scrollen
+- Auswahl eines Unterschieds in Dokumentansicht und Ergebnistabelle synchronisieren
+- laufenden Vergleich abbrechen
+- echten Fortschritt des Vergleichs anzeigen
 - optionale Berücksichtigung von Groß-/Kleinschreibung
 - optionale Berücksichtigung von Zahlen und Satzzeichen
 - Normalisierung von Leerzeichen
 - Ähnlichkeitswert in Prozent
 - Anzeige von Unterschiedsanzahl, geprüften Einheiten und Verarbeitungszeit
-- getrennte Vorschau beider Dokumente
 - strukturierte Unterschiedsliste
 - HTML- und CSV-Export
 - asynchrone Dateiverarbeitung
@@ -30,6 +36,14 @@ Bilddateien werden optional mit Tesseract OCR verarbeitet.
 - technisches Fehlerprotokoll unter `%LocalAppData%/DocComparePro/Logs/application.log`
 - automatisierte xUnit-Tests
 - GitHub-Actions-Build auf Windows
+
+## Farbliche Markierung
+
+- **Rot:** Inhalt wurde aus Dokument A entfernt
+- **Grün:** Inhalt wurde in Dokument B hinzugefügt
+- **Gelb:** ähnlicher Inhalt wurde geändert
+- **Blau:** aktuell ausgewählter Unterschied
+- **Transparent:** Inhalt ist identisch
 
 ## Architektur
 
@@ -55,10 +69,10 @@ DocComparePro.Tests/
 
 ### Verantwortlichkeiten
 
-- `Views`: Darstellung, Bindings und ausschließlich UI-spezifische Ereignisse
-- `ViewModels`: Zustand, Commands und Ablaufsteuerung
+- `Views`: Darstellung, Bindings, Drag-and-drop und synchrones Scrollen
+- `ViewModels`: Zustand, Commands, Fortschritt, Abbruch und Ablaufsteuerung
 - `DocumentReader`: TXT-, PDF-, DOCX- und OCR-Verarbeitung
-- `ComparisonEngine`: Tokenisierung, LCS-Diff und Statistiken
+- `ComparisonEngine`: Tokenisierung, LCS-Diff, Levenshtein-Bewertung und Statistiken
 - `ReportExporter`: HTML- und CSV-Berichte
 - `FileLogger`: persistente technische Fehlerprotokolle
 - `Models`: unveränderliche Domain-Modelle
@@ -105,7 +119,9 @@ Die Dateien werden beim Build in den Ausgabeordner kopiert. TXT-, PDF- und DOCX-
 
 ## Vergleichsverfahren
 
-Der Text wird abhängig vom Modus in Wörter oder Sätze zerlegt. Eine Longest-Common-Subsequence-Matrix erzeugt anschließend einen deterministischen Diff. Direkt aufeinanderfolgende Entfernen-/Hinzufügen-Paare werden als Änderung zusammengefasst.
+Der Text wird abhängig vom Modus in Wörter oder Sätze zerlegt. Eine Longest-Common-Subsequence-Matrix erzeugt einen deterministischen Diff. Direkt benachbarte entfernte und hinzugefügte Einheiten werden über ihre normalisierte Levenshtein-Ähnlichkeit bewertet. Ausreichend ähnliche Paare werden als Änderung dargestellt; vollständig unterschiedliche Einheiten bleiben getrennt hinzugefügt und entfernt.
+
+Die Vergleichsengine unterstützt `CancellationToken` und meldet ihren Fortschritt über `IProgress<int>`. Dadurch bleibt die Oberfläche bei großen Dokumenten bedienbar und der Benutzer kann den Vorgang kontrolliert abbrechen.
 
 ## Qualität
 
@@ -113,10 +129,18 @@ Der Text wird abhängig vom Modus in Wörter oder Sätze zerlegt. Eine Longest-C
 - Abhängigkeiten über Interfaces
 - XML-Dokumentationskommentare für öffentliche C#-APIs
 - gezielte `//`-Kommentare für nicht offensichtliche Entscheidungen
-- keine Geschäftslogik im Window-Code-behind
+- Code-behind ausschließlich für UI-spezifische Aufgaben
 - Nullable Reference Types
 - Warnungen als Buildfehler
 - automatisierte Tests und Windows-CI
+
+## Geplante nächste Ausbaustufen
+
+- Vergleich kompletter Ordner
+- Excel- und CSV-Zellvergleich
+- lokaler Vergleichsverlauf
+- PDF-Berichtsexport
+- mehrsprachige Oberfläche
 
 ## Autor
 
