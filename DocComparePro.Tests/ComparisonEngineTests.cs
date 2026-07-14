@@ -1,4 +1,5 @@
 using DocComparePro.Core;
+using Xunit;
 
 namespace DocComparePro.Tests;
 
