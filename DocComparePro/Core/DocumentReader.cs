@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Tesseract;
 using UglyToad.PdfPig;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
 namespace DocComparePro.Core;
 
@@ -56,7 +57,7 @@ public sealed class DocumentReader : IDocumentReader
         var text = extension.ToLowerInvariant() switch
         {
             ".txt" => await File.ReadAllTextAsync(filePath, Encoding.UTF8, cancellationToken),
-            ".pdf" => await Task.Run(() => ReadPdf(filePath), cancellationToken),
+            ".pdf" => await Task.Run(() => ReadPdf(filePath, cancellationToken), cancellationToken),
             ".docx" => await Task.Run(() => ReadDocx(filePath), cancellationToken),
             ".png" or ".jpg" or ".jpeg" or ".bmp" or ".tif" or ".tiff" when enableOcr =>
                 await Task.Run(() => ReadImageWithOcr(filePath), cancellationToken),
@@ -69,17 +70,41 @@ public sealed class DocumentReader : IDocumentReader
         return new DocumentContent(filePath, info.Name, text, info.Length);
     }
 
-    private static string ReadPdf(string filePath)
+    private static string ReadPdf(string filePath, CancellationToken cancellationToken)
     {
         var builder = new StringBuilder();
         using var document = PdfDocument.Open(filePath);
 
         foreach (var page in document.GetPages())
         {
-            builder.AppendLine(page.Text);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // page.Text often loses reading order. The content-order extractor produces
+            // a much more reliable preview for normal text-based PDF documents.
+            var pageText = ContentOrderTextExtractor.GetText(page)?.Trim();
+            if (string.IsNullOrWhiteSpace(pageText))
+            {
+                pageText = string.Join(' ', page.GetWords().Select(word => word.Text)).Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(pageText))
+            {
+                if (builder.Length > 0)
+                {
+                    builder.AppendLine().AppendLine();
+                }
+
+                builder.AppendLine($"--- Seite {page.Number} ---");
+                builder.AppendLine(pageText);
+            }
         }
 
-        return builder.ToString();
+        if (builder.Length == 0)
+        {
+            return "Diese PDF enthält keinen direkt auslesbaren Text. Sie ist vermutlich gescannt oder geschützt. Eine visuelle PDF-Vorschau wird trotzdem angezeigt; für den Textvergleich ist PDF-OCR erforderlich.";
+        }
+
+        return builder.ToString().Trim();
     }
 
     private static string ReadDocx(string filePath)
