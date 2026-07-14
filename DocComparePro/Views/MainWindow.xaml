@@ -75,25 +75,24 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="ImagePreviewBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#B0151515" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
     </Window.Resources>
 
     <Grid>
         <Ellipse Width="620" Height="620" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-260,-300,0,0" IsHitTestVisible="False">
-            <Ellipse.Fill>
-                <RadialGradientBrush>
-                    <GradientStop Color="{StaticResource NeonBlueColor}" Offset="0" />
-                    <GradientStop Color="#0000D9FF" Offset="1" />
-                </RadialGradientBrush>
-            </Ellipse.Fill>
+            <Ellipse.Fill><RadialGradientBrush><GradientStop Color="{StaticResource NeonBlueColor}" Offset="0" /><GradientStop Color="#0000D9FF" Offset="1" /></RadialGradientBrush></Ellipse.Fill>
             <Ellipse.Opacity>0.22</Ellipse.Opacity>
         </Ellipse>
         <Ellipse Width="560" Height="560" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-220,-280" IsHitTestVisible="False">
-            <Ellipse.Fill>
-                <RadialGradientBrush>
-                    <GradientStop Color="{StaticResource NeonGreenColor}" Offset="0" />
-                    <GradientStop Color="#0000FFAA" Offset="1" />
-                </RadialGradientBrush>
-            </Ellipse.Fill>
+            <Ellipse.Fill><RadialGradientBrush><GradientStop Color="{StaticResource NeonGreenColor}" Offset="0" /><GradientStop Color="#0000FFAA" Offset="1" /></RadialGradientBrush></Ellipse.Fill>
             <Ellipse.Opacity>0.17</Ellipse.Opacity>
         </Ellipse>
 
@@ -107,49 +106,38 @@
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="4,0,4,16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Text="DocComparePro" FontSize="32" FontWeight="Bold" />
-                    <TextBlock Text="Dokumentvergleich für TXT, PDF, DOCX und Bilder"
-                               Margin="0,3,0,0"
-                               Foreground="{DynamicResource SecondaryTextBrush}" />
+                    <TextBlock Text="Automatische Vorschau und markierter Dokumentvergleich" Margin="0,3,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="Zurücksetzen" Command="{Binding ClearCommand}" Style="{StaticResource DarkButtonStyle}" />
                     <Button Content="Bericht exportieren" Command="{Binding ExportCommand}" Style="{StaticResource DarkButtonStyle}" />
                     <Button Content="Abbrechen" Command="{Binding CancelComparisonCommand}" Style="{StaticResource DarkButtonStyle}" />
-                    <Button Content="Vergleich starten" Command="{Binding CompareCommand}" Style="{StaticResource PrimaryButtonStyle}" />
+                    <Button Content="Neu vergleichen" Command="{Binding CompareCommand}" Style="{StaticResource PrimaryButtonStyle}" />
                 </StackPanel>
             </Grid>
 
             <Grid Grid.Row="1" Margin="0,0,0,14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition Width="14" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-
+                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
                 <Border Grid.Column="0" Style="{StaticResource UploadZoneStyle}" BorderBrush="{DynamicResource NeonGreenBrush}" AllowDrop="True" Drop="LeftDropZone_OnDrop">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="Dokument A" FontSize="19" FontWeight="Bold" />
-                            <TextBlock Text="Datei hier ablegen oder auswählen" Margin="0,5,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            <TextBlock Text="Auswahl lädt sofort eine Vorschau" Margin="0,5,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
                             <TextBlock Text="{Binding LeftFileName}" Margin="0,12,18,0" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                         <Button Grid.Column="1" Content="Datei auswählen" Command="{Binding SelectLeftFileCommand}" Style="{StaticResource DarkButtonStyle}" VerticalAlignment="Center" />
                     </Grid>
                 </Border>
-
                 <Border Grid.Column="2" Style="{StaticResource UploadZoneStyle}" BorderBrush="{DynamicResource NeonOrangeBrush}" AllowDrop="True" Drop="RightDropZone_OnDrop">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="Dokument B" FontSize="19" FontWeight="Bold" />
-                            <TextBlock Text="Datei hier ablegen oder auswählen" Margin="0,5,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
+                            <TextBlock Text="Beide Dateien werden automatisch verglichen" Margin="0,5,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
                             <TextBlock Text="{Binding RightFileName}" Margin="0,12,18,0" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                         <Button Grid.Column="1" Content="Datei auswählen" Command="{Binding SelectRightFileCommand}" Style="{StaticResource DarkButtonStyle}" VerticalAlignment="Center" />
@@ -172,7 +160,6 @@
                         </WrapPanel>
                     </StackPanel>
                 </Border>
-
                 <Border Grid.Column="2" Style="{StaticResource GlassCardStyle}">
                     <UniformGrid Columns="4">
                         <Border Style="{StaticResource StatCardStyle}"><StackPanel><TextBlock Text="Ähnlichkeit" Foreground="{DynamicResource SecondaryTextBrush}" /><TextBlock Text="{Binding SimilarityPercentage, StringFormat={}{0:N2} %}" FontSize="21" FontWeight="Bold" Foreground="{DynamicResource NeonGreenBrush}" /></StackPanel></Border>
@@ -187,37 +174,39 @@
                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="12" /><ColumnDefinition /><ColumnDefinition Width="12" /><ColumnDefinition Width="0.9*" /></Grid.ColumnDefinitions>
 
                 <Border Grid.Column="0" Style="{StaticResource GlassCardStyle}">
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="Dokument A – direkt markiert" FontWeight="Bold" Margin="0,0,0,10" />
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                        <TextBlock Text="Dokument A – Vorschau und Markierungen" FontWeight="Bold" Margin="0,0,0,10" />
+                        <Border Grid.Row="1" Style="{StaticResource ImagePreviewBorderStyle}" Visibility="{Binding IsLeftImage, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Image Source="{Binding LeftImagePath}" MaxHeight="190" Stretch="Uniform" />
+                        </Border>
                         <ListBox x:Name="LeftDocumentList"
-                                 ItemsSource="{Binding AlignedDifferences}"
+                                 Grid.Row="2"
+                                 ItemsSource="{Binding LeftPreviewItems}"
                                  SelectedItem="{Binding SelectedDifference, Mode=TwoWay}"
                                  Style="{StaticResource AlignedListStyle}"
                                  ItemContainerStyle="{StaticResource LeftAlignedItemStyle}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding LeftText}" FontFamily="Consolas" TextWrapping="Wrap" />
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
+                            <ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding LeftText}" FontFamily="Consolas" TextWrapping="Wrap" /></DataTemplate></ListBox.ItemTemplate>
                         </ListBox>
-                    </DockPanel>
+                    </Grid>
                 </Border>
 
                 <Border Grid.Column="2" Style="{StaticResource GlassCardStyle}">
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="Dokument B – direkt markiert" FontWeight="Bold" Margin="0,0,0,10" />
+                    <Grid>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                        <TextBlock Text="Dokument B – Vorschau und Markierungen" FontWeight="Bold" Margin="0,0,0,10" />
+                        <Border Grid.Row="1" Style="{StaticResource ImagePreviewBorderStyle}" Visibility="{Binding IsRightImage, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Image Source="{Binding RightImagePath}" MaxHeight="190" Stretch="Uniform" />
+                        </Border>
                         <ListBox x:Name="RightDocumentList"
-                                 ItemsSource="{Binding AlignedDifferences}"
+                                 Grid.Row="2"
+                                 ItemsSource="{Binding RightPreviewItems}"
                                  SelectedItem="{Binding SelectedDifference, Mode=TwoWay}"
                                  Style="{StaticResource AlignedListStyle}"
                                  ItemContainerStyle="{StaticResource RightAlignedItemStyle}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding RightText}" FontFamily="Consolas" TextWrapping="Wrap" />
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
+                            <ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding RightText}" FontFamily="Consolas" TextWrapping="Wrap" /></DataTemplate></ListBox.ItemTemplate>
                         </ListBox>
-                    </DockPanel>
+                    </Grid>
                 </Border>
 
                 <Border Grid.Column="4" Style="{StaticResource GlassCardStyle}">
@@ -242,12 +231,7 @@
             <Grid Grid.Row="4" Margin="4,13,4,0">
                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource SecondaryTextBrush}" VerticalAlignment="Center" />
-                <ProgressBar Grid.Column="1"
-                             Minimum="0"
-                             Maximum="100"
-                             Value="{Binding ComparisonProgress}"
-                             Height="8"
-                             VerticalAlignment="Center" />
+                <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding ComparisonProgress}" Height="8" VerticalAlignment="Center" />
             </Grid>
         </Grid>
     </Grid>
