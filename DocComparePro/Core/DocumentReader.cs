@@ -29,7 +29,7 @@ public sealed class DocumentReader : IDocumentReader
     private static readonly HashSet<string> SupportedExtensions =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ".txt", ".pdf", ".docx", ".png", ".jpg", ".jpeg"
+            ".txt", ".pdf", ".docx", ".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff"
         };
 
     /// <inheritdoc />
@@ -58,9 +58,9 @@ public sealed class DocumentReader : IDocumentReader
             ".txt" => await File.ReadAllTextAsync(filePath, Encoding.UTF8, cancellationToken),
             ".pdf" => await Task.Run(() => ReadPdf(filePath), cancellationToken),
             ".docx" => await Task.Run(() => ReadDocx(filePath), cancellationToken),
-            ".png" or ".jpg" or ".jpeg" when enableOcr =>
+            ".png" or ".jpg" or ".jpeg" or ".bmp" or ".tif" or ".tiff" when enableOcr =>
                 await Task.Run(() => ReadImageWithOcr(filePath), cancellationToken),
-            ".png" or ".jpg" or ".jpeg" =>
+            ".png" or ".jpg" or ".jpeg" or ".bmp" or ".tif" or ".tiff" =>
                 throw new InvalidOperationException("Für Bilddateien muss OCR aktiviert sein."),
             _ => throw new NotSupportedException()
         };
@@ -97,18 +97,38 @@ public sealed class DocumentReader : IDocumentReader
     private static string ReadImageWithOcr(string filePath)
     {
         var dataPath = Path.Combine(AppContext.BaseDirectory, "tessdata");
-        var germanData = Path.Combine(dataPath, "deu.traineddata");
-        var englishData = Path.Combine(dataPath, "eng.traineddata");
-
-        if (!File.Exists(germanData) || !File.Exists(englishData))
+        if (!Directory.Exists(dataPath))
         {
-            throw new FileNotFoundException(
-                "Für OCR werden tessdata/deu.traineddata und tessdata/eng.traineddata benötigt.");
+            throw new DirectoryNotFoundException(
+                "Der OCR-Ordner 'tessdata' fehlt. Lege dort deu.traineddata oder eng.traineddata ab.");
         }
 
-        using var engine = new TesseractEngine(dataPath, "deu+eng", Tesseract.EngineMode.Default);
+        var availableLanguages = new[] { "deu", "eng" }
+            .Where(language => File.Exists(Path.Combine(dataPath, $"{language}.traineddata")))
+            .ToArray();
+
+        if (availableLanguages.Length == 0)
+        {
+            throw new FileNotFoundException(
+                "Für OCR wird mindestens tessdata/deu.traineddata oder tessdata/eng.traineddata benötigt.");
+        }
+
+        using var engine = new TesseractEngine(
+            dataPath,
+            string.Join('+', availableLanguages),
+            Tesseract.EngineMode.Default);
+        engine.SetVariable("preserve_interword_spaces", "1");
+
         using var image = Pix.LoadFromFile(filePath);
-        using var page = engine.Process(image);
-        return page.GetText();
+        using var page = engine.Process(image, PageSegMode.Auto);
+        var text = page.GetText()?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new InvalidDataException(
+                "Im Bild wurde kein lesbarer Text erkannt. Prüfe Bildqualität, Ausrichtung und OCR-Sprachdateien.");
+        }
+
+        return text;
     }
 }
