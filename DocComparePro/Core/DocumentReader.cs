@@ -101,7 +101,7 @@ public sealed class DocumentReader : IDocumentReader
 
         if (builder.Length == 0)
         {
-            return "Diese PDF enthält keinen direkt auslesbaren Text. Sie ist vermutlich gescannt oder geschützt. Eine visuelle PDF-Vorschau wird trotzdem angezeigt; für den Textvergleich ist PDF-OCR erforderlich.";
+            return "Diese PDF enthält keinen direkt auslesbaren Text. Sie ist vermutlich gescannt oder geschützt. Für eine Textvorschau und den Vergleich ist PDF-OCR erforderlich.";
         }
 
         return builder.ToString().Trim();
