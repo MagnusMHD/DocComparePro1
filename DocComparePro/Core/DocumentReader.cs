@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -105,7 +106,7 @@ public sealed class DocumentReader : IDocumentReader
                 "Für OCR werden tessdata/deu.traineddata und tessdata/eng.traineddata benötigt.");
         }
 
-        using var engine = new TesseractEngine(dataPath, "deu+eng", EngineMode.Default);
+        using var engine = new TesseractEngine(dataPath, "deu+eng", Tesseract.EngineMode.Default);
         using var image = Pix.LoadFromFile(filePath);
         using var page = engine.Process(image);
         return page.GetText();
