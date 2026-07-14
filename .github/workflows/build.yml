@@ -1,0 +1,35 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ master, feature/complete-mvvm-rebuild ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore application
+        run: dotnet restore DocComparePro/DocComparePro.csproj
+
+      - name: Build application
+        run: dotnet build DocComparePro/DocComparePro.csproj --configuration Release --no-restore
+
+      - name: Restore tests
+        run: dotnet restore DocComparePro.Tests/DocComparePro.Tests.csproj
+
+      - name: Run tests
+        run: dotnet test DocComparePro.Tests/DocComparePro.Tests.csproj --configuration Release --no-restore --verbosity normal
