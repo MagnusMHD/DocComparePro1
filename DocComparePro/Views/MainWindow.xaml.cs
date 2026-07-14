@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using DocComparePro.ViewModels;
 
 namespace DocComparePro.Views;
@@ -8,10 +10,55 @@ namespace DocComparePro.Views;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private ScrollViewer? leftScrollViewer;
+    private ScrollViewer? rightScrollViewer;
+    private bool isSynchronizingScroll;
+
     /// <summary>Initializes the main application window.</summary>
     public MainWindow()
     {
         InitializeComponent();
+    }
+
+    private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        leftScrollViewer = FindVisualChild<ScrollViewer>(LeftDocumentList);
+        rightScrollViewer = FindVisualChild<ScrollViewer>(RightDocumentList);
+
+        if (leftScrollViewer is not null)
+        {
+            leftScrollViewer.ScrollChanged += LeftScrollViewer_OnScrollChanged;
+        }
+
+        if (rightScrollViewer is not null)
+        {
+            rightScrollViewer.ScrollChanged += RightScrollViewer_OnScrollChanged;
+        }
+    }
+
+    private void LeftScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e) =>
+        SynchronizeScroll(leftScrollViewer, rightScrollViewer);
+
+    private void RightScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e) =>
+        SynchronizeScroll(rightScrollViewer, leftScrollViewer);
+
+    private void SynchronizeScroll(ScrollViewer? source, ScrollViewer? target)
+    {
+        if (isSynchronizingScroll || source is null || target is null)
+        {
+            return;
+        }
+
+        try
+        {
+            isSynchronizingScroll = true;
+            target.ScrollToVerticalOffset(source.VerticalOffset);
+            target.ScrollToHorizontalOffset(source.HorizontalOffset);
+        }
+        finally
+        {
+            isSynchronizingScroll = false;
+        }
     }
 
     private void LeftDropZone_OnDrop(object sender, DragEventArgs e) => HandleDrop(e, isLeft: true);
@@ -27,7 +74,27 @@ public partial class MainWindow : Window
             return;
         }
 
-        // The view forwards only the dropped path; validation remains in the view model/services.
         viewModel.SetDroppedFile(isLeft, files[0]);
+    }
+
+    private static T? FindVisualChild<T>(DependencyObject parent)
+        where T : DependencyObject
+    {
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, index);
+            if (child is T match)
+            {
+                return match;
+            }
+
+            var descendant = FindVisualChild<T>(child);
+            if (descendant is not null)
+            {
+                return descendant;
+            }
+        }
+
+        return null;
     }
 }
