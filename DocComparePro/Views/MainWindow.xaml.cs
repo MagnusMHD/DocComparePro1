@@ -61,11 +61,13 @@ public partial class MainWindow : Window
         }
     }
 
-    private void LeftDropZone_OnDrop(object sender, DragEventArgs e) => HandleDrop(e, isLeft: true);
+    private async void LeftDropZone_OnDrop(object sender, DragEventArgs e) =>
+        await HandleDropAsync(e, isLeft: true);
 
-    private void RightDropZone_OnDrop(object sender, DragEventArgs e) => HandleDrop(e, isLeft: false);
+    private async void RightDropZone_OnDrop(object sender, DragEventArgs e) =>
+        await HandleDropAsync(e, isLeft: false);
 
-    private void HandleDrop(DragEventArgs e, bool isLeft)
+    private async Task HandleDropAsync(DragEventArgs e, bool isLeft)
     {
         if (DataContext is not MainViewModel viewModel ||
             !e.Data.GetDataPresent(DataFormats.FileDrop) ||
@@ -74,7 +76,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        viewModel.SetDroppedFile(isLeft, files[0]);
+        // Loading remains in the view model; the view only forwards the dropped file path.
+        await viewModel.SetDroppedFileAsync(isLeft, files[0]);
     }
 
     private static T? FindVisualChild<T>(DependencyObject parent)

@@ -9,12 +9,18 @@ DocComparePro ist eine WPF-Desktopanwendung zum lokalen Vergleich von Dokumenten
 - DOCX
 - PNG
 - JPG / JPEG
+- BMP
+- TIF / TIFF
 
-Bilddateien werden optional mit Tesseract OCR verarbeitet.
+Bilddateien werden mit Tesseract OCR verarbeitet und zusätzlich als Originalbild in der Vorschau angezeigt.
 
 ## Funktionen
 
 - Dateiauswahl und Drag-and-drop für beide Dokumente
+- automatische Vorschau direkt nach der Dateiauswahl
+- automatischer Vergleich, sobald beide Dokumente geladen sind
+- Originalbild-Vorschau bei Bilddateien
+- OCR-Text unterhalb der Bildvorschau
 - wortweiser oder satzweiser Vergleich
 - Erkennung von gleichen, hinzugefügten, entfernten und geänderten Inhalten
 - Tippfehler und ähnliche Ersetzungen über Levenshtein-Distanz erkennen
@@ -22,7 +28,7 @@ Bilddateien werden optional mit Tesseract OCR verarbeitet.
 - Unterschiede direkt in beiden Dokumentansichten farbig markieren
 - synchrones horizontales und vertikales Scrollen
 - Auswahl eines Unterschieds in Dokumentansicht und Ergebnistabelle synchronisieren
-- laufenden Vergleich abbrechen
+- laufenden Vergleich oder Ladevorgang abbrechen
 - echten Fortschritt des Vergleichs anzeigen
 - optionale Berücksichtigung von Groß-/Kleinschreibung
 - optionale Berücksichtigung von Zahlen und Satzzeichen
@@ -36,6 +42,15 @@ Bilddateien werden optional mit Tesseract OCR verarbeitet.
 - technisches Fehlerprotokoll unter `%LocalAppData%/DocComparePro/Logs/application.log`
 - automatisierte xUnit-Tests
 - GitHub-Actions-Build auf Windows
+
+## Bedienablauf
+
+1. Dokument A auswählen oder per Drag-and-drop ablegen.
+2. Die Vorschau wird sofort geladen.
+3. Dokument B auswählen oder ablegen.
+4. DocComparePro vergleicht beide Dokumente automatisch.
+5. Hinzugefügte, entfernte und geänderte Inhalte werden in beiden Ansichten markiert.
+6. Über **Neu vergleichen** kann nach geänderten Optionen erneut verglichen werden.
 
 ## Farbliche Markierung
 
@@ -69,8 +84,8 @@ DocComparePro.Tests/
 
 ### Verantwortlichkeiten
 
-- `Views`: Darstellung, Bindings, Drag-and-drop und synchrones Scrollen
-- `ViewModels`: Zustand, Commands, Fortschritt, Abbruch und Ablaufsteuerung
+- `Views`: Darstellung, Bildvorschau, Bindings, Drag-and-drop und synchrones Scrollen
+- `ViewModels`: automatisches Laden, Vorschauzustand, Commands, Fortschritt, Abbruch und Ablaufsteuerung
 - `DocumentReader`: TXT-, PDF-, DOCX- und OCR-Verarbeitung
 - `ComparisonEngine`: Tokenisierung, LCS-Diff, Levenshtein-Bewertung und Statistiken
 - `ReportExporter`: HTML- und CSV-Berichte
@@ -107,7 +122,7 @@ dotnet run --project DocComparePro/DocComparePro.csproj
 
 ## OCR einrichten
 
-Für Bildvergleiche müssen diese Dateien unter `DocComparePro/tessdata` liegen:
+Für Bildvergleiche wird mindestens eine dieser Dateien unter `DocComparePro/tessdata` benötigt:
 
 ```text
 tessdata/
@@ -115,7 +130,9 @@ tessdata/
 └── eng.traineddata
 ```
 
-Die Dateien werden beim Build in den Ausgabeordner kopiert. TXT-, PDF- und DOCX-Vergleiche funktionieren auch ohne OCR-Sprachdateien.
+Sind beide Dateien vorhanden, verwendet die Anwendung Deutsch und Englisch gemeinsam. Ist nur eine vorhanden, wird automatisch diese Sprache verwendet. Die Dateien werden beim Build in den Ausgabeordner kopiert. TXT-, PDF- und DOCX-Vergleiche funktionieren auch ohne OCR-Sprachdateien.
+
+Für gute OCR-Ergebnisse sollte das Bild gerade ausgerichtet, ausreichend groß, scharf und kontrastreich sein. Erkennt Tesseract keinen Text, zeigt die Anwendung eine verständliche Fehlermeldung.
 
 ## Vergleichsverfahren
 
